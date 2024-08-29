@@ -27,17 +27,17 @@ public class CategoryRestControllerAdapter {
     private final ICreateCategoryServicePort createCategoryServicePort;
     private final IFindAllCategoriesServicePort findAllCategoriesServicePort;
 
-    @Operation(summary = "Add a new category", description = "Adds a new category to the system")
+    @Operation(summary = "Agregar una nueva categoría", description = "Añade una nueva categoría al sistema")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Category successfully added",
+            @ApiResponse(responseCode = "201", description = "Categoría añadida con éxito",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid category name",
+            @ApiResponse(responseCode = "400", description = "Nombre de categoría no válido",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
     })
     @PostMapping
     public ResponseEntity<String> saveCategory(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Category to be added", required = true,
+                    description = "Categoría a añadir", required = true,
                     content = @Content(schema = @Schema(implementation = AddCategoryRequest.class)))
             @RequestBody AddCategoryRequest addCategoryRequest) {
         try {
@@ -49,9 +49,9 @@ public class CategoryRestControllerAdapter {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-    @Operation(summary = "Get all categories", description = "Retrieves a paginated list of all categories")
+    @Operation(summary = "Obtener todas las categorías", description = "Recupera una lista paginada de todas las categorías")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successfully retrieved list of categories",
+            @ApiResponse(responseCode = "200", description = "Lista de categorías recuperada con éxito",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = PagedResult.class)))
     })
     @GetMapping

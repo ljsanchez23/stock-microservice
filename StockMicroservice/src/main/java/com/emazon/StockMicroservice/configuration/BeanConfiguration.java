@@ -8,9 +8,11 @@ import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IBrandR
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.ICategoryRepository;
 import com.emazon.StockMicroservice.domain.api.ICreateBrandServicePort;
 import com.emazon.StockMicroservice.domain.api.ICreateCategoryServicePort;
+import com.emazon.StockMicroservice.domain.api.IFindAllBrandsServicePort;
 import com.emazon.StockMicroservice.domain.api.IFindAllCategoriesServicePort;
 import com.emazon.StockMicroservice.domain.api.usecase.CreateBrandUseCase;
 import com.emazon.StockMicroservice.domain.api.usecase.CreateCategoryUseCase;
+import com.emazon.StockMicroservice.domain.api.usecase.FindAllBrandsUseCase;
 import com.emazon.StockMicroservice.domain.api.usecase.FindAllCategoriesUseCase;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
@@ -48,6 +50,10 @@ public class BeanConfiguration {
     @Bean
     public ICreateBrandServicePort brandServicePort(){
         return new CreateBrandUseCase(brandPersistencePort());
+    }
+    @Bean
+    public IFindAllBrandsServicePort findAllBrandsServicePort(){
+        return new FindAllBrandsUseCase(brandPersistencePort());
     }
 
 }

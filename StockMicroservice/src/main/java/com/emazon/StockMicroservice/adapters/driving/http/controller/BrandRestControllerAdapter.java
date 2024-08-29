@@ -3,8 +3,11 @@ package com.emazon.StockMicroservice.adapters.driving.http.controller;
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddBrandRequest;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.IBrandRequestMapper;
 import com.emazon.StockMicroservice.domain.api.ICreateBrandServicePort;
+import com.emazon.StockMicroservice.domain.api.IFindAllBrandsServicePort;
 import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Brand;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
+import com.emazon.StockMicroservice.domain.util.SortDirection;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,10 +17,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/brand")
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Tag(name = "Brand", description = "API for managing brands")
 public class BrandRestControllerAdapter {
     private final ICreateBrandServicePort createBrandServicePort;
+    private final IFindAllBrandsServicePort findAllBrandsServicePort;
 
     @Operation(summary = "Agregar una nueva marca", description = "Añade una nueva marca al sistema")
     @ApiResponses(value = {
@@ -47,5 +48,17 @@ public class BrandRestControllerAdapter {
         } catch (InvalidNameException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
+    }
+    @Operation(summary = "Obtener todas las marcas", description = "Recupera una lista paginada de todas las marcas")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Lista de marcas recuperada con éxito",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PagedResult.class)))
+    })
+    @GetMapping
+    public PagedResult<Brand> getAllBrands(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "asc") SortDirection sortDirection) {
+        return findAllBrandsServicePort.getAllBrands(page, size, sortDirection);
     }
 }

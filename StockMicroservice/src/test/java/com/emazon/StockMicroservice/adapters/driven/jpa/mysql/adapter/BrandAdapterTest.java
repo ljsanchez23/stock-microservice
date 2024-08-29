@@ -5,10 +5,17 @@ import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IBrandEntit
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IBrandRepository;
 import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Brand;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
+import com.emazon.StockMicroservice.domain.util.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -72,5 +79,31 @@ class BrandAdapterTest {
         boolean result = brandAdapter.existsByName(name);
 
         assertFalse(result, "The brand should not exist.");
+    }
+
+    @Test
+    @DisplayName("Debería devolver un resultado paginado de marcas")
+    void shouldReturnPagedResultOfBrands() {
+        int page = 0, size = 10;
+        SortDirection sortDirection = SortDirection.ASC;
+        BrandEntity brandEntity = new BrandEntity(1L, "Adimas", "Shoes");
+        Brand brand = new Brand(1L, "Adimas", "Shoes");
+
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
+        Page<BrandEntity> brandPage = new PageImpl<>(List.of(brandEntity), pageRequest, 1);
+
+        when(brandRepository.findAll(pageRequest)).thenReturn(brandPage);
+        when(brandEntityMapper.toDomain(brandEntity)).thenReturn(brand);
+
+
+        PagedResult<Brand> result = brandAdapter.getAllBrands(page, size, sortDirection);
+
+        assertEquals(1, result.getTotalElements());
+        assertEquals(page, result.getPage());
+        assertEquals(size, result.getSize());
+        assertEquals(List.of(brand), result.getContent());
+
+        verify(brandRepository).findAll(pageRequest);
+        verify(brandEntityMapper).toDomain(brandEntity);
     }
 }

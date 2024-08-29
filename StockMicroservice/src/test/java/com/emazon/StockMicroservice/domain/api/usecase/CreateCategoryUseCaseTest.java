@@ -11,13 +11,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class CreateCategoryUseCaseTest {
-    private CreateCreateCategoryUseCase createCategoryUseCase;
+    private CreateCategoryUseCase createCategoryUseCase;
     private ICategoryPersistencePort categoryPersistencePort;
 
     @BeforeEach
     void setUp() {
         categoryPersistencePort = mock(ICategoryPersistencePort.class);
-        createCategoryUseCase = new CreateCreateCategoryUseCase(categoryPersistencePort);
+        createCategoryUseCase = new CreateCategoryUseCase(categoryPersistencePort);
     }
 
     @Test

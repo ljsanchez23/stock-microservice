@@ -4,12 +4,12 @@ import com.emazon.StockMicroservice.domain.exception.InvalidDescriptionException
 import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.util.Constants;
 
-public class Category {
+public class Brand {
     private final Long id;
     private final String name;
     private final String description;
 
-    public Category(Long id, String name, String description) {
+    public Brand(Long id, String name, String description) {
         if (name == null || name.isBlank()) {
             throw new InvalidNameException("Name cannot be null or blank.");
         }
@@ -19,8 +19,8 @@ public class Category {
         if (description == null || description.isBlank()) {
             throw new InvalidDescriptionException("Description cannot be null or blank.");
         }
-        if (description.length() > Constants.CATEGORY_DESCRIPTION_MAX_LENGTH) {
-            throw new InvalidDescriptionException("Description must be less than 90 characters.");
+        if (description.length() > Constants.BRAND_DESCRIPTION_MAX_LENGTH) {
+            throw new InvalidDescriptionException("Description must be less than 120 characters.");
         }
 
         this.id = id;
@@ -43,10 +43,10 @@ public class Category {
     }
 
     public void setName(String name) {
-        // Method used to set the name of a category.
+        // Method used to set the name of a brand.
     }
 
     public void setDescription(String description) {
-        // Method used to set the description of a category.
+        // Method used to set the description of a brand.
     }
 }

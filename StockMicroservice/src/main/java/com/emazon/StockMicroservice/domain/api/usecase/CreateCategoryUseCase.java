@@ -5,10 +5,10 @@ import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
 
-public class CreateCreateCategoryUseCase implements ICreateCategoryServicePort {
+public class CreateCategoryUseCase implements ICreateCategoryServicePort {
     private final ICategoryPersistencePort categoryPersistencePort;
 
-    public CreateCreateCategoryUseCase(ICategoryPersistencePort categoryPersistencePort){
+    public CreateCategoryUseCase(ICategoryPersistencePort categoryPersistencePort){
         this.categoryPersistencePort = categoryPersistencePort;
     }
 

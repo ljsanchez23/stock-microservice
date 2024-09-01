@@ -1,7 +1,10 @@
 package com.emazon.StockMicroservice.domain.api.usecase;
 
+import com.emazon.StockMicroservice.domain.exception.InvalidDescriptionException;
+import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
+import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
 import com.emazon.StockMicroservice.domain.util.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
@@ -16,19 +19,39 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.doThrow;
 
-class FindallBrandsUseCaseTest {
-
+class BrandUseCaseTest {
     @Mock
     private IBrandPersistencePort brandPersistencePort;
 
     @InjectMocks
-    private FindAllBrandsUseCase findAllBrandsUseCase;
+    private BrandUseCase brandUseCase;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
+    }
+
+    @Test
+    @DisplayName("Debería lanzar una excepción cuando el nombre de la marca ya existe")
+    void shouldThrowExceptionWhenBrandNameAlreadyExists() {
+        Brand existingBrand = new Brand(1L,"Adimas", "Fast as wind");
+        when(brandPersistencePort.existsByName("Adimas")).thenReturn(true);
+
+        assertThrows(InvalidNameException.class, () -> brandUseCase.saveBrand(existingBrand));
+
+        verify(brandPersistencePort, never()).saveBrand(existingBrand);
+    }
+
+    @Test
+    @DisplayName("Debería guardar la marca cuando el nombre es único")
+    void shouldSaveCategoryWhenNameIsUnique() {
+        Brand newBrand = new Brand(1L, "Adimas", "Fast as wind");
+        when(brandPersistencePort.existsByName("Adimas")).thenReturn(false);
+
+        brandUseCase.saveBrand(newBrand);
+
+        verify(brandPersistencePort, times(1)).saveBrand(newBrand);
     }
 
     @Test
@@ -44,7 +67,7 @@ class FindallBrandsUseCaseTest {
                 1
         );
         when(brandPersistencePort.getAllBrands(page, size, sortDirection)).thenReturn(expectedPagedResult);
-        PagedResult<Brand> actualPagedResult = findAllBrandsUseCase.getAllBrands(page, size, sortDirection);
+        PagedResult<Brand> actualPagedResult = brandUseCase.listBrands(page, size, sortDirection);
         assertEquals(expectedPagedResult, actualPagedResult);
     }
 
@@ -64,7 +87,7 @@ class FindallBrandsUseCaseTest {
 
         when(brandPersistencePort.getAllBrands(page, size, sortDirection)).thenReturn(expectedPagedResult);
 
-        PagedResult<Brand> actualPagedResult = findAllBrandsUseCase.getAllBrands(page, size, sortDirection);
+        PagedResult<Brand> actualPagedResult = brandUseCase.listBrands(page, size, sortDirection);
 
         assertEquals(expectedPagedResult, actualPagedResult);
         assertEquals(0, actualPagedResult.getTotalElements());
@@ -91,7 +114,7 @@ class FindallBrandsUseCaseTest {
 
         when(brandPersistencePort.getAllBrands(page, size, sortDirection)).thenReturn(expectedPagedResult);
 
-        PagedResult<Brand> actualPagedResult = findAllBrandsUseCase.getAllBrands(page, size, sortDirection);
+        PagedResult<Brand> actualPagedResult = brandUseCase.listBrands(page, size, sortDirection);
 
         assertEquals(expectedPagedResult, actualPagedResult);
         assertEquals(brands, actualPagedResult.getContent());
@@ -104,7 +127,7 @@ class FindallBrandsUseCaseTest {
         int size = 20;
         SortDirection sortDirection = SortDirection.DESC;
 
-        findAllBrandsUseCase.getAllBrands(page, size, sortDirection);
+        brandUseCase.listBrands(page, size, sortDirection);
 
         verify(brandPersistencePort, times(1)).getAllBrands(page, size, sortDirection);
     }
@@ -120,8 +143,42 @@ class FindallBrandsUseCaseTest {
         doThrow(new RuntimeException("Persistence error")).when(brandPersistencePort).getAllBrands(page, size, sortDirection);
 
         RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            findAllBrandsUseCase.getAllBrands(page, size, sortDirection);
+            brandUseCase.listBrands(page, size, sortDirection);
         });
         assertEquals("Persistence error", exception.getMessage());
+    }
+
+    @Test
+    @DisplayName("Debería lanzar una excepción cuando el nombre es nulo o vacío")
+    void shouldThrowExceptionWhenBrandNameIsNullOrBlank() {
+        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(null, "Valid description"));
+        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand("", "Valid description"));
+    }
+
+    @Test
+    @DisplayName("Debería lanzar una excepción cuando el nombre excede el tamaño máximo permitido")
+    void shouldThrowExceptionWhenBrandNameExceedsMaxLength() {
+        String longName = "A".repeat(Constants.NAME_MAX_LENGTH + 1);
+        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(longName, "Valid description"));
+    }
+
+    @Test
+    @DisplayName("Debería lanzar una excepción cuando la descripción es nula o vacía")
+    void shouldThrowExceptionWhenBrandDescriptionIsNullOrBlank() {
+        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid name", null));
+        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid name", ""));
+    }
+
+    @Test
+    @DisplayName("Debería lanzar una excepción cuando la descripción excede el tamaño máximo permitido")
+    void shouldThrowExceptionWhenBrandDescriptionExceedsMaxLength() {
+        String longDescription = "A".repeat(Constants.BRAND_DESCRIPTION_MAX_LENGTH + 1);
+        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid name", longDescription));
+    }
+
+    @Test
+    @DisplayName("Debería pasar la validación cuando el nombre y la descripción son válidos")
+    void shouldPassValidationWhenBrandNameAndDescriptionAreValid() {
+        brandUseCase.validateBrand("Valid name", "Valid description");
     }
 }

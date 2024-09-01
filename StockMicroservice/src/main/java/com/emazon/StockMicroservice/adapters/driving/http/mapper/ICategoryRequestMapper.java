@@ -5,16 +5,18 @@ import com.emazon.StockMicroservice.domain.model.Category;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-@Mapper
+/**
+ * Maps AddCategoryRequest DTOs to Category domain models.
+ */
+@Mapper(componentModel = "spring")
 public interface ICategoryRequestMapper {
 
-    static Category toModel(AddCategoryRequest addCategoryRequest) {
-        return new Category(
-                addCategoryRequest.getId(),
-                addCategoryRequest.getName(),
-                addCategoryRequest.getDescription());
-    }
-
-    @Mapping(target = "id", ignore = true)
-    Category addCategory(AddCategoryRequest addCategoryRequest);
+    /**
+     * Maps AddCategoryRequest to Category model.
+     *
+     * @param addCategoryRequest the request DTO for adding a category
+     * @return the Category domain model
+     */
+    @Mapping(target = "id", ignore = true) // This mapping ignores the ID field in the target
+    Category toModel(AddCategoryRequest addCategoryRequest);
 }

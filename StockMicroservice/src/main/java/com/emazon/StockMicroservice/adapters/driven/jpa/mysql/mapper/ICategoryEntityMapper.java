@@ -6,6 +6,9 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
+/**
+ * Mapper interface for converting between Category domain model and CategoryEntity.
+ */
 @Mapper(componentModel = "spring")
 public interface ICategoryEntityMapper {
     CategoryEntity toEntity(Category category);

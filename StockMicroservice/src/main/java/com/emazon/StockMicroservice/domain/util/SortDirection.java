@@ -1,5 +1,9 @@
 package com.emazon.StockMicroservice.domain.util;
 
+/**
+ * Represents sorting directions: ascending (ASC) and descending (DESC).
+ * Provides methods to get the direction as a string and to convert from a string.
+ */
 public enum SortDirection {
     ASC("asc"),
     DESC("desc");

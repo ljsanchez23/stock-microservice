@@ -3,7 +3,6 @@ package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.adapter;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.CategoryEntity;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.ICategoryEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.ICategoryRepository;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
@@ -15,17 +14,16 @@ import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
+/**
+ * Adapter for managing categories in the database using JPA.
+ */
 @RequiredArgsConstructor
 public class CategoryAdapter implements ICategoryPersistencePort {
     private final ICategoryRepository categoryRepository;
     private final ICategoryEntityMapper categoryEntityMapper;
 
     @Override
-    public void saveCategory(Category category){
-        if (categoryRepository.findByName(category.getName()).isPresent()) {
-            throw new InvalidNameException("Category with the name '" + category.getName() + "' already exist.");
-        }
-
+    public void saveCategory(Category category) {
         categoryRepository.save(categoryEntityMapper.toEntity(category));
     }
 
@@ -34,6 +32,14 @@ public class CategoryAdapter implements ICategoryPersistencePort {
         return categoryRepository.findByName(name).isPresent();
     }
 
+    /**
+     * Retrieves a paginated list of categories from the database.
+     *
+     * @param page          the page number to retrieve
+     * @param size          the number of items per page
+     * @param sortDirection the sorting direction (ASC or DESC)
+     * @return a paginated result containing the categories
+     */
     @Override
     public PagedResult<Category> getAllCategories(int page, int size, SortDirection sortDirection) {
         Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection.name()) ? Sort.Direction.DESC : Sort.Direction.ASC;

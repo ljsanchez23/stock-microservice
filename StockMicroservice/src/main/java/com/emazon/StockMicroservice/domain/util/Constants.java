@@ -1,5 +1,10 @@
 package com.emazon.StockMicroservice.domain.util;
 
+/**
+ * Contains constants used throughout the domain,
+ * such as maximum lengths for names and descriptions.
+ * This is a utility class and cannot be instantiated.
+ */
 public class Constants {
     private Constants() {
         throw new UnsupportedOperationException("This is a utility class and cannot be instantiated");

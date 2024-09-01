@@ -1,34 +1,21 @@
 package com.emazon.StockMicroservice.domain.model;
 
-import com.emazon.StockMicroservice.domain.exception.InvalidDescriptionException;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
-import com.emazon.StockMicroservice.domain.util.Constants;
-
+/**
+ * Represents a brand with an ID, name, and description.
+ * Used to identify and describe brands in the system.
+ */
 public class Brand {
     private final Long id;
     private final String name;
     private final String description;
 
     public Brand(Long id, String name, String description) {
-        if (name == null || name.isBlank()) {
-            throw new InvalidNameException("Name cannot be null or blank.");
-        }
-        if (name.length() > Constants.NAME_MAX_LENGTH) {
-            throw new InvalidNameException("Name must be less than 50 characters.");
-        }
-        if (description == null || description.isBlank()) {
-            throw new InvalidDescriptionException("Description cannot be null or blank.");
-        }
-        if (description.length() > Constants.BRAND_DESCRIPTION_MAX_LENGTH) {
-            throw new InvalidDescriptionException("Description must be less than 120 characters.");
-        }
-
         this.id = id;
         this.name = name;
         this.description = description;
     }
 
-    // Getters
+    // Getters and setters
 
     public Long getId() {
         return id;
@@ -43,10 +30,10 @@ public class Brand {
     }
 
     public void setName(String name) {
-        // Method used to set the name of a brand.
+        // Method to set the name of a brand.
     }
 
     public void setDescription(String description) {
-        // Method used to set the description of a brand.
+        // Method to set the description of a brand.
     }
 }

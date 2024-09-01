@@ -6,6 +6,9 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
+/**
+ * Mapper interface for converting between Brand domain model and BrandEntity.
+ */
 @Mapper(componentModel = "spring")
 public interface IBrandEntityMapper {
     BrandEntity toEntity(Brand brand);

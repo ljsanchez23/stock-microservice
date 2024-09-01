@@ -5,6 +5,10 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Configures the OpenAPI documentation for the Stock Microservice.
+ * Sets up basic API information like title, version, and description.
+ */
 @Configuration
 public class OpenApiConfiguration {
 

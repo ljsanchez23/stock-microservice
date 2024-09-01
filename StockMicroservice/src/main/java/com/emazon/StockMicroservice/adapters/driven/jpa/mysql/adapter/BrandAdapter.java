@@ -3,7 +3,6 @@ package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.adapter;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.BrandEntity;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IBrandEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IBrandRepository;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
@@ -15,6 +14,9 @@ import org.springframework.data.domain.Sort;
 
 import java.util.List;
 
+/**
+ * Adapter for managing brands in the database using JPA.
+ */
 @RequiredArgsConstructor
 public class BrandAdapter implements IBrandPersistencePort {
     private final IBrandRepository brandRepository;
@@ -22,10 +24,6 @@ public class BrandAdapter implements IBrandPersistencePort {
 
     @Override
     public void saveBrand(Brand brand){
-        if (brandRepository.findByName(brand.getName()).isPresent()) {
-            throw new InvalidNameException("Brand with the name '" + brand.getName() + "' already exist.");
-        }
-
         brandRepository.save(brandEntityMapper.toEntity(brand));
     }
 
@@ -34,6 +32,14 @@ public class BrandAdapter implements IBrandPersistencePort {
         return brandRepository.findByName(name).isPresent();
     }
 
+    /**
+     * Retrieves a paginated list of brands from the database.
+     *
+     * @param page          the page number to retrieve
+     * @param size          the number of items per page
+     * @param sortDirection the sorting direction (ASC or DESC)
+     * @return a paginated result containing the brands
+     */
     @Override
     public PagedResult<Brand> getAllBrands(int page, int size, SortDirection sortDirection) {
         Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection.name()) ? Sort.Direction.DESC : Sort.Direction.ASC;

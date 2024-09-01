@@ -3,7 +3,6 @@ package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.adapter;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.BrandEntity;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IBrandEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IBrandRepository;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
 import com.emazon.StockMicroservice.domain.util.SortDirection;
@@ -19,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.mockito.Mockito.when;
 
@@ -33,17 +31,6 @@ class BrandAdapterTest {
         brandRepository = mock(IBrandRepository.class);
         brandEntityMapper = mock(IBrandEntityMapper.class);
         brandAdapter = new BrandAdapter(brandRepository, brandEntityMapper);
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre de la marca ya existe")
-    void shouldThrowExceptionWhenBrandNameAlreadyExists() {
-        Brand brand = new Brand(1L,"Adimas", "Fast as wind");
-        when(brandRepository.findByName("Adimas")).thenReturn(Optional.of(new BrandEntity()));
-
-        assertThrows(InvalidNameException.class, () -> brandAdapter.saveBrand(brand));
-
-        verify(brandRepository, never()).save(any(BrandEntity.class));
     }
 
     @Test

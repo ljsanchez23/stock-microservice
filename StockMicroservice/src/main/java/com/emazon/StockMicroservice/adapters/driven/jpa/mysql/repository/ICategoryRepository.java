@@ -4,9 +4,6 @@ import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.CategoryEnt
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 
-/**
- * Repository interface for managing Category entities.
- */
 public interface ICategoryRepository extends JpaRepository<CategoryEntity, Long> {
     Optional<CategoryEntity> findByName(String name);
 }

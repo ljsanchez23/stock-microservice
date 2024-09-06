@@ -1,10 +1,11 @@
 package com.emazon.StockMicroservice.adapters.driving.http.controller;
 
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddProductRequest;
+import com.emazon.StockMicroservice.adapters.driving.http.dto.response.ProductResponse;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.IProductRequestMapper;
 import com.emazon.StockMicroservice.domain.api.IProductServicePort;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Product;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,14 +15,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-/**
- * REST controller for managing products.
- */
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/product")
 @RequiredArgsConstructor
@@ -30,12 +29,6 @@ public class ProductRestControllerAdapter {
     private final IProductServicePort productServicePort;
     private final IProductRequestMapper productRequestMapper;
 
-    /**
-     * Adds a new product.
-     *
-     * @param addProductRequest the product to add
-     * @return a response indicating the result
-     */
     @Operation(summary = "Add a new product", description = "Adds a new product to the system")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Product successfully added",
@@ -44,19 +37,41 @@ public class ProductRestControllerAdapter {
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
     })
     @PostMapping
-    public ResponseEntity<String> saveProduct(
+    public ResponseEntity<Map<String, Object>> saveProduct(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
                     description = "Product to add", required = true,
                     content = @Content(schema = @Schema(implementation = AddProductRequest.class)))
             @RequestBody AddProductRequest addProductRequest) {
-        try {
-            // Use the injected mapper instance to map the request to the domain model
-            Product product = productRequestMapper.toModel(addProductRequest);
-            productServicePort.saveProduct(product);
-            return ResponseEntity.status(HttpStatus.CREATED)
-                    .body("Product '" + product.getName() + "' has been successfully added.");
-        } catch (InvalidNameException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
+        Product product = productRequestMapper.toModel(addProductRequest);
+        productServicePort.saveProduct(product);
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Product has been successfully added.");
+        response.put("name", product.getName());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @Operation(summary = "Get all products", description = "Retrieves a paginated list of all products")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of products successfully retrieved",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PagedResult.class)))
+    })
+    @GetMapping
+    public ResponseEntity<PagedResult<ProductResponse>> getAllProducts(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false) String direction,
+            @RequestParam(required = false) String sort) {
+        PagedResult<Product> products = productServicePort.listProducts(page, size, direction, sort);
+        List<ProductResponse> productResponses = products.getContent()
+                .stream()
+                .map(productRequestMapper::toResponse)
+                .toList();
+        PagedResult<ProductResponse> pagedProductResponses = new PagedResult<>(
+                productResponses,
+                products.getPage(),
+                products.getSize(),
+                products.getTotalElements()
+        );
+        return ResponseEntity.ok(pagedProductResponses);
     }
 }

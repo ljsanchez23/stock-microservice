@@ -7,11 +7,7 @@ import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
-import com.emazon.StockMicroservice.domain.util.SortDirection;
 
-/**
- * Handles business logic for categories, including validation and persistence.
- */
 public class CategoryUseCase implements ICategoryServicePort {
     private final ICategoryPersistencePort categoryPersistencePort;
 
@@ -19,11 +15,6 @@ public class CategoryUseCase implements ICategoryServicePort {
         this.categoryPersistencePort = categoryPersistencePort;
     }
 
-    /**
-     * Saves a category after validating its attributes.
-     *
-     * @param category the category to be saved
-     */
     @Override
     public void saveCategory(Category category) {
         validateCategory(category.getName(), category.getDescription());
@@ -33,24 +24,19 @@ public class CategoryUseCase implements ICategoryServicePort {
         categoryPersistencePort.saveCategory(category);
     }
 
-    /**
-     * Lists categories with pagination and sorting.
-     *
-     * @param page the page number
-     * @param size the number of items per page
-     * @param sortDirection the direction to sort the categories
-     * @return a paginated result of categories
-     */
     @Override
-    public PagedResult<Category> listCategories(int page, int size, SortDirection sortDirection) {
-        return categoryPersistencePort.getAllCategories(page, size, sortDirection);
+    public PagedResult<Category> listCategories(Integer page, Integer size, String sortDirection) {
+        int defaultPage = 0;
+        int defaultSize = 10;
+        String defaultSortDirection = "ASC";
+
+        int actualPage = (page != null) ? page : defaultPage;
+        int actualSize = (size != null) ? size : defaultSize;
+        String actualSortDirection = (sortDirection != null) ? sortDirection : defaultSortDirection;
+
+        return categoryPersistencePort.getAllCategories(actualPage, actualSize, actualSortDirection);
     }
 
-    /**
-     * Validation methods to ensure that category attributes meet the required rules:
-     * - Name must not be null, blank, or exceed the maximum length.
-     * - Description must not be null, blank, or exceed the maximum length.
-     */
     public void validateCategory(String name, String description) {
         if (name == null || name.isBlank()) {
             throw new InvalidNameException("Name cannot be null or blank.");

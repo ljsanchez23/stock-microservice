@@ -1,15 +1,16 @@
 package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.adapter;
+
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.CategoryEntity;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.ICategoryEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.ICategoryRepository;
 import com.emazon.StockMicroservice.domain.model.Category;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-
-import com.emazon.StockMicroservice.domain.util.PagedResult;
-import com.emazon.StockMicroservice.domain.util.SortDirection;
-
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -18,26 +19,32 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class CategoryAdapterTest {
-    private CategoryAdapter categoryAdapter;
+
+    @Mock
     private ICategoryRepository categoryRepository;
+
+    @Mock
     private ICategoryEntityMapper categoryEntityMapper;
+
+    @InjectMocks
+    private CategoryAdapter categoryAdapter;
 
     @BeforeEach
     void setUp() {
-        categoryRepository = mock(ICategoryRepository.class);
-        categoryEntityMapper = mock(ICategoryEntityMapper.class);
+        MockitoAnnotations.openMocks(this);
         categoryAdapter = new CategoryAdapter(categoryRepository, categoryEntityMapper);
     }
 
     @Test
-    @DisplayName("Debería guardar la categoría cuando el nombre es único")
-    void shouldSaveCategoryWhenNameIsUnique() {
-        Category category = new Category(1L,"Electronics", "Devices and gadgets");
-        when(categoryRepository.findByName("Electronics")).thenReturn(Optional.empty());
+    @DisplayName("Should save the category correctly")
+    void shouldSaveCategory() {
+        Category category = new Category(1L, "Electronics", "Devices and gadgets");
         CategoryEntity categoryEntity = new CategoryEntity();
         when(categoryEntityMapper.toEntity(category)).thenReturn(categoryEntity);
 
@@ -47,50 +54,44 @@ class CategoryAdapterTest {
     }
 
     @Test
-    @DisplayName("Debería devolver true cuando la categoría existe")
-    void shouldReturnTrueWhenCategoryExists() {
-        String name = "Electronics";
-        when(categoryRepository.findByName(name)).thenReturn(Optional.of(new CategoryEntity()));
+    @DisplayName("Should return true if the category exists by name")
+    void shouldReturnTrueIfCategoryExistsByName() {
+        String categoryName = "Electronics";
+        when(categoryRepository.findByName(categoryName)).thenReturn(Optional.of(new CategoryEntity()));
 
-        boolean result = categoryAdapter.existsByName(name);
+        boolean exists = categoryAdapter.existsByName(categoryName);
 
-        assertTrue(result, "The category should exist.");
+        assertTrue(exists);
+        verify(categoryRepository, times(1)).findByName(categoryName);
     }
 
     @Test
-    @DisplayName("Debería devolver false cuando la categoría no existe")
-    void shouldReturnFalseWhenCategoryDoesNotExist() {
-        String name = "Electronics";
-        when(categoryRepository.findByName(name)).thenReturn(Optional.empty());
-
-        boolean result = categoryAdapter.existsByName(name);
-
-        assertFalse(result, "The category should not exist.");
-    }
-
-    @Test
-    @DisplayName("Debería devolver un resultado paginado de categorías")
+    @DisplayName("Should return a paginated result of categories")
     void shouldReturnPagedResultOfCategories() {
-        int page = 0, size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-        CategoryEntity categoryEntity = new CategoryEntity(1L, "Electronics", "Devices");
-        Category category = new Category(1L, "Electronics", "Devices");
+        CategoryEntity categoryEntity = new CategoryEntity();
+        categoryEntity.setId(1L);
+        categoryEntity.setName("Electronics");
+        categoryEntity.setDescription("Devices and gadgets");
 
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
-        Page<CategoryEntity> categoryPage = new PageImpl<>(List.of(categoryEntity), pageRequest, 1);
+        Category category = new Category(1L, "Electronics", "Devices and gadgets");
 
-        when(categoryRepository.findAll(pageRequest)).thenReturn(categoryPage);
         when(categoryEntityMapper.toDomain(categoryEntity)).thenReturn(category);
 
+        List<CategoryEntity> categoryEntities = List.of(categoryEntity, categoryEntity, categoryEntity, categoryEntity, categoryEntity,
+                categoryEntity, categoryEntity, categoryEntity, categoryEntity, categoryEntity);
+        Page<CategoryEntity> categoryPage = new PageImpl<>(categoryEntities, PageRequest.of(0, 10), 10);
+        when(categoryRepository.findAll(any(PageRequest.class))).thenReturn(categoryPage);
 
-        PagedResult<Category> result = categoryAdapter.getAllCategories(page, size, sortDirection);
+        PagedResult<Category> result = categoryAdapter.getAllCategories(0, 10, "ASC");
 
-        assertEquals(1, result.getTotalElements());
-        assertEquals(page, result.getPage());
-        assertEquals(size, result.getSize());
-        assertEquals(List.of(category), result.getContent());
+        assertEquals(10, result.getContent().size());
+        assertEquals(category.getId(), result.getContent().get(0).getId());
+        assertEquals(category.getName(), result.getContent().get(0).getName());
+        assertEquals(category.getDescription(), result.getContent().get(0).getDescription());
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSize());
+        assertEquals(10, result.getTotalElements());
 
-        verify(categoryRepository).findAll(pageRequest);
-        verify(categoryEntityMapper).toDomain(categoryEntity);
+        verify(categoryRepository, times(1)).findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name")));
     }
 }

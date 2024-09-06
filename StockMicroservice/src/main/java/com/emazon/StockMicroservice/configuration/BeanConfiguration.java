@@ -18,10 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Configures the beans for the application, setting up the persistence and service ports
- * for categories, brands, and products.
- */
 @Configuration
 @RequiredArgsConstructor
 public class BeanConfiguration {
@@ -32,12 +28,6 @@ public class BeanConfiguration {
     private final IProductRepository productRepository;
     private final IProductEntityMapper productEntityMapper;
 
-    /**
-     * Configures the persistence and service ports for categories.
-     * Sets up the necessary beans for handling category operations in the application.
-     *
-     * @return the configured beans for category persistence and service ports
-     */
     @Bean
     public ICategoryPersistencePort categoryPersistencePort(){
         return new CategoryAdapter(categoryRepository, categoryEntityMapper);
@@ -47,12 +37,6 @@ public class BeanConfiguration {
         return new CategoryUseCase(categoryPersistencePort());
     }
 
-    /**
-     * Configures the persistence and service ports for brands.
-     * Sets up the necessary beans for handling brand operations in the application.
-     *
-     * @return the configured beans for brand persistence and service ports
-     */
     @Bean
     public IBrandPersistencePort brandPersistencePort() {
         return new BrandAdapter(brandRepository, brandEntityMapper);
@@ -62,12 +46,6 @@ public class BeanConfiguration {
         return new BrandUseCase(brandPersistencePort());
     }
 
-    /**
-     * Configures the persistence and service ports for products.
-     * Sets up the necessary beans for handling product operations in the application.
-     *
-     * @return the configured beans for product persistence and service ports
-     */
     @Bean
     public IProductPersistencePort productPersistencePort(){
         return new ProductAdapter(productRepository, productEntityMapper);

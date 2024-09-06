@@ -9,14 +9,11 @@ import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.model.Product;
 import com.emazon.StockMicroservice.domain.spi.IProductPersistencePort;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
-/**
- * Handles business logic for products, including validation and persistence.
- */
 public class ProductUseCase implements IProductServicePort {
     private final IProductPersistencePort productPersistencePort;
 
@@ -24,11 +21,6 @@ public class ProductUseCase implements IProductServicePort {
         this.productPersistencePort = productPersistencePort;
     }
 
-    /**
-     * Saves a product after validating its attributes.
-     *
-     * @param product the product to be saved
-     */
     @Override
     public void saveProduct(Product product) {
         validateQuantity(product.getQuantity());
@@ -41,13 +33,41 @@ public class ProductUseCase implements IProductServicePort {
         productPersistencePort.saveProduct(product);
     }
 
-    /**
-     * Validation methods to ensure that the product attributes meet the required rules:
-     * - Quantity must be non-negative.
-     * - Price must be non-negative.
-     * - Categories must not be empty, have duplicates, or exceed the maximum limit.
-     * - A product must have an associated brand.
-     */
+    @Override
+    public PagedResult<Product> listProducts(Integer page, Integer size, String sortDirection, String sort) {
+        int defaultPage = 0;
+        int defaultSize = 10;
+        String defaultSortDirection = "ASC";
+        String defaultSortField = "product";
+
+        int actualPage = (page != null) ? page : defaultPage;
+        int actualSize = (size != null) ? size : defaultSize;
+        String actualSortDirection = (sortDirection != null) ? sortDirection : defaultSortDirection;
+        String actualSortField = (sort != null) ? sort : defaultSortField;
+
+        String sortField = switch (actualSortField.toLowerCase()) {
+            case "category" -> "categories.name";
+            case "brand" -> "brand.name";
+            default -> "name";
+        };
+
+        PagedResult<Product> pagedResult = productPersistencePort.getAllProducts(actualPage, actualSize, actualSortDirection, sortField);
+
+        if ("categories.name".equals(sortField)) {
+            List<Product> sortedProducts = pagedResult.getContent().stream()
+                    .sorted(Comparator.comparing(product ->
+                            product.getCategories().isEmpty() ? "" :
+                                    product.getCategories().get(0).getName()))
+                    .collect(Collectors.toList());
+
+            if ("desc".equalsIgnoreCase(actualSortDirection)) {
+                Collections.reverse(sortedProducts);
+            }
+            return new PagedResult<>(sortedProducts, pagedResult.getPage(), pagedResult.getSize(), pagedResult.getTotalElements());
+        }
+        return pagedResult;
+    }
+
     private void validateQuantity(int quantity) {
         if (quantity < 0) {
             throw new InvalidQuantityException("Quantity cannot be negative.");

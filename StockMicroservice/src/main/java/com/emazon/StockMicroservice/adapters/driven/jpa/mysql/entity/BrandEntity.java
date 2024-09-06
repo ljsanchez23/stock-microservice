@@ -6,9 +6,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/**
- * Entity representing a brand in the database.
- */
 @Entity
 @Table(name = "brand")
 @AllArgsConstructor

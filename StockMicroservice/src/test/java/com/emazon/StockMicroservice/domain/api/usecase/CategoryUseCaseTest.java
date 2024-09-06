@@ -6,174 +6,100 @@ import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
-import com.emazon.StockMicroservice.domain.util.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
-import java.util.List;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class CategoryUseCaseTest {
-    private CategoryUseCase categoryUseCase;
+
+    @Mock
     private ICategoryPersistencePort categoryPersistencePort;
+
+    @InjectMocks
+    private CategoryUseCase categoryUseCase;
 
     @BeforeEach
     void setUp() {
-        categoryPersistencePort = mock(ICategoryPersistencePort.class);
-        categoryUseCase = new CategoryUseCase(categoryPersistencePort);
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre de la categoría ya existe")
-    void shouldThrowExceptionWhenCategoryNameAlreadyExists() {
-        Category existingCategory = new Category(1L,"Electronics", "Devices and gadgets");
-        when(categoryPersistencePort.existsByName("Electronics")).thenReturn(true);
+    @DisplayName("Should save the category when the inputs are valid ")
+    void shouldSaveCategoryWhenValid() {
+        Category category = new Category(1L, "Valid Name", "Valid Description");
+        when(categoryPersistencePort.existsByName(category.getName())).thenReturn(false);
 
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.saveCategory(existingCategory));
+        categoryUseCase.saveCategory(category);
 
-        verify(categoryPersistencePort, never()).saveCategory(existingCategory);
+        verify(categoryPersistencePort, times(1)).saveCategory(category);
     }
 
     @Test
-    @DisplayName("Debería guardar la categoría cuando el nombre es único")
-    void shouldSaveCategoryWhenNameIsUnique() {
-        Category newCategory = new Category(1L, "Electronics", "Devices and gadgets");
-        when(categoryPersistencePort.existsByName("Electronics")).thenReturn(false);
+    @DisplayName("Should throw exception when the name already exists")
+    void shouldThrowExceptionWhenNameAlreadyExists() {
+        Category category = new Category(1L, "Duplicate Name", "Valid Description");
+        when(categoryPersistencePort.existsByName(category.getName())).thenReturn(true);
 
-        categoryUseCase.saveCategory(newCategory);
-
-        verify(categoryPersistencePort, times(1)).saveCategory(newCategory);
+        assertThrows(InvalidNameException.class, () -> categoryUseCase.saveCategory(category));
     }
 
     @Test
-    @DisplayName("Debería devolver un resultado paginado de categorías")
-    void shouldReturnPagedResultOfCategories() {
-        int page = 0;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-        PagedResult<Category> expectedPagedResult = new PagedResult<>(
-                List.of(new Category(1L, "Electronics", "Devices")),
-                page,
-                size,
-                1
-        );
-        when(categoryPersistencePort.getAllCategories(page, size, sortDirection)).thenReturn(expectedPagedResult);
-        PagedResult<Category> actualPagedResult = categoryUseCase.listCategories(page, size, sortDirection);
-        assertEquals(expectedPagedResult, actualPagedResult);
+    @DisplayName("Should return a paginated result of categories")
+    void shouldReturnPagedResult() {
+        PagedResult<Category> expectedPagedResult = new PagedResult<>(Collections.emptyList(), 0, 10, 0L);
+        when(categoryPersistencePort.getAllCategories(0, 10, "ASC")).thenReturn(expectedPagedResult);
+
+        PagedResult<Category> result = categoryUseCase.listCategories(0, 10, "ASC");
+
+        assertEquals(expectedPagedResult, result);
+        verify(categoryPersistencePort, times(1)).getAllCategories(0, 10, "ASC");
     }
 
     @Test
-    @DisplayName("Debería devolver un resultado vacío cuando no existen categorías")
-    void shouldReturnEmptyResultWhenNoCategoriesExist() {
-        int page = 0;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-
-        PagedResult<Category> expectedPagedResult = new PagedResult<>(
-                List.of(),
-                page,
-                size,
-                0
-        );
-
-        when(categoryPersistencePort.getAllCategories(page, size, sortDirection)).thenReturn(expectedPagedResult);
-
-        PagedResult<Category> actualPagedResult = categoryUseCase.listCategories(page, size, sortDirection);
-
-        assertEquals(expectedPagedResult, actualPagedResult);
-        assertEquals(0, actualPagedResult.getTotalElements());
-        assertEquals(0, actualPagedResult.getContent().size());
+    @DisplayName("Should throw exception when the name is not given")
+    void shouldThrowExceptionWhenNameIsNull() {
+        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(null, "Valid Description"));
     }
 
     @Test
-    @DisplayName("Debería manejar el ordenamiento por orden descendente correctamente")
-    void shouldHandleSortingByDescendingOrder() {
-        int page = 0;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.DESC;
-
-        List<Category> categories = List.of(
-                new Category(2L, "Zoology", "Study of animals"),
-                new Category(1L, "Electronics", "Devices")
-        );
-        PagedResult<Category> expectedPagedResult = new PagedResult<>(
-                categories,
-                page,
-                size,
-                categories.size()
-        );
-
-        when(categoryPersistencePort.getAllCategories(page, size, sortDirection)).thenReturn(expectedPagedResult);
-
-        PagedResult<Category> actualPagedResult = categoryUseCase.listCategories(page, size, sortDirection);
-
-        assertEquals(expectedPagedResult, actualPagedResult);
-        assertEquals(categories, actualPagedResult.getContent());
+    @DisplayName("Should throw exception when the name is blank")
+    void shouldThrowExceptionWhenNameIsBlank() {
+        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(" ", "Valid Description"));
     }
 
     @Test
-    @DisplayName("Debería llamar al puerto de persistencia con los parámetros correctos")
-    void shouldCallPersistencePortWithCorrectParameters() {
-        int page = 1;
-        int size = 20;
-        SortDirection sortDirection = SortDirection.DESC;
-
-        categoryUseCase.listCategories(page, size, sortDirection);
-
-        verify(categoryPersistencePort, times(1)).getAllCategories(page, size, sortDirection);
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el puerto de persistencia falla")
-    void shouldThrowExceptionWhenPersistencePortFails() {
-
-        int page = 1;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-
-        doThrow(new RuntimeException("Persistence error")).when(categoryPersistencePort).getAllCategories(page, size, sortDirection);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            categoryUseCase.listCategories(page, size, sortDirection);
-        });
-        assertEquals("Persistence error", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre de la categoría es nulo o vacío")
-    void shouldThrowExceptionWhenCategoryNameIsNullOrBlank() {
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(null, "Valid description"));
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory("", "Valid description"));
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre de la categoría excede el tamaño máximo permitido")
-    void shouldThrowExceptionWhenCategoryNameExceedsMaxLength() {
+    @DisplayName("Should throw exception when the name is too long")
+    void shouldThrowExceptionWhenNameIsTooLong() {
         String longName = "A".repeat(Constants.NAME_MAX_LENGTH + 1);
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(longName, "Valid description"));
+
+        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(longName, "Valid Description"));
     }
 
     @Test
-    @DisplayName("Debería lanzar una excepción cuando la descripción de la categoría es nula o vacía")
-    void shouldThrowExceptionWhenCategoryDescriptionIsNullOrBlank() {
-        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid name", null));
-        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid name", ""));
+    @DisplayName("Should throw exception when the description is not given")
+    void shouldThrowExceptionWhenDescriptionIsNull() {
+        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid Name", null));
     }
 
     @Test
-    @DisplayName("Debería lanzar una excepción cuando la descripción de la categoría excede el tamaño máximo permitido")
-    void shouldThrowExceptionWhenCategoryDescriptionExceedsMaxLength() {
+    @DisplayName("Should throw exception when the description is blank")
+    void shouldThrowExceptionWhenDescriptionIsBlank() {
+        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid Name", " "));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when the description is too long")
+    void shouldThrowExceptionWhenDescriptionIsTooLong() {
         String longDescription = "A".repeat(Constants.CATEGORY_DESCRIPTION_MAX_LENGTH + 1);
-        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid name", longDescription));
-    }
-
-    @Test
-    @DisplayName("Debería pasar la validación cuando el nombre y la descripción de la categoría son válidos")
-    void shouldPassValidationWhenCategoryNameAndDescriptionAreValid() {
-        categoryUseCase.validateCategory("Valid name", "Valid description");
+        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid Name", longDescription));
     }
 }

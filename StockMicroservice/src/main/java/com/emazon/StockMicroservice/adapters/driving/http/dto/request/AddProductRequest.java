@@ -8,9 +8,6 @@ import lombok.Getter;
 
 import java.util.List;
 
-/**
- * DTO for adding a new product.
- */
 @AllArgsConstructor
 @Getter
 public class AddProductRequest {

@@ -9,9 +9,6 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Entity representing a product in the database.
- */
 @Entity
 @Table(name = "product")
 @AllArgsConstructor

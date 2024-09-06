@@ -1,71 +1,99 @@
 package com.emazon.StockMicroservice.adapters.driving.controller;
 
+
 import com.emazon.StockMicroservice.adapters.driving.http.controller.ProductRestControllerAdapter;
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddProductRequest;
+import com.emazon.StockMicroservice.adapters.driving.http.dto.response.ProductResponse;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.IProductRequestMapper;
 import com.emazon.StockMicroservice.domain.api.IProductServicePort;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
-import com.emazon.StockMicroservice.domain.model.Brand;
-import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.model.Product;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(controllers = ProductRestControllerAdapter.class)
 class ProductRestControllerAdapterTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private IProductServicePort productServicePort;
 
-    @MockBean
+    @Mock
     private IProductRequestMapper productRequestMapper;
 
-    @Test
-    @DisplayName("Should return Bad Request when product name already exists")
-    void shouldReturnBadRequestWhenProductNameAlreadyExists() throws Exception {
-        Product product = new Product(1L, "Laptop", "High-end gaming laptop", 5, 1500.00,
-                List.of(new Category(1L, "Electronics", "Devices and gadgets")), new Brand(1L, "TechBrand", "Leading tech brand"));
+    @InjectMocks
+    private ProductRestControllerAdapter productRestControllerAdapter;
 
-        when(productRequestMapper.toModel(any(AddProductRequest.class))).thenReturn(product);
-        doThrow(new InvalidNameException("The product with the name 'Laptop' already exists."))
-                .when(productServicePort).saveProduct(any(Product.class));
-
-        mockMvc.perform(post("/product")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Laptop\",\"description\":\"High-end gaming laptop\",\"quantity\":5,\"price\":1500.00,\"categories\":[{\"id\":1,\"name\":\"Electronics\",\"description\":\"Devices and gadgets\"}],\"brand\":{\"id\":1,\"name\":\"TechBrand\",\"description\":\"Leading tech brand\"}}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("The product with the name 'Laptop' already exists."));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        productRestControllerAdapter = new ProductRestControllerAdapter(productServicePort, productRequestMapper);
     }
 
     @Test
-    @DisplayName("Should create the product successfully")
-    void shouldCreateProductSuccessfully() throws Exception {
-        Product product = new Product(1L, "Smartphone", "Latest model smartphone", 10, 999.99,
-                List.of(new Category(1L, "Electronics", "Devices and gadgets")), new Brand(1L, "SmartBrand", "Top smartphone brand"));
+    @DisplayName("Should add a new product correctly")
+    void shouldSaveProduct() {
+        AddProductRequest addProductRequest = new AddProductRequest(1L, "Laptop", "High-end gaming laptop", 5, 1500.00, List.of(), null);
+        Product product = new Product(1L, "Laptop", "High-end gaming laptop", 5, 1500.00, List.of(), null);
+        when(productRequestMapper.toModel(addProductRequest)).thenReturn(product);
 
-        when(productRequestMapper.toModel(any(AddProductRequest.class))).thenReturn(product);
+        ResponseEntity<Map<String, Object>> response = productRestControllerAdapter.saveProduct(addProductRequest);
 
-        mockMvc.perform(post("/product")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Smartphone\",\"description\":\"Latest model smartphone\",\"quantity\":10,\"price\":999.99,\"categories\":[{\"id\":1,\"name\":\"Electronics\",\"description\":\"Devices and gadgets\"}],\"brand\":{\"id\":1,\"name\":\"SmartBrand\",\"description\":\"Top smartphone brand\"}}"))
-                .andExpect(status().isCreated())
-                .andExpect(content().string("Product 'Smartphone' has been successfully added."));
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("Product has been successfully added.", response.getBody().get("message"));
+        assertEquals("Laptop", response.getBody().get("name"));
+        verify(productServicePort, times(1)).saveProduct(product);
+    }
+
+    @Test
+    @DisplayName("Should return a paginated result of products")
+    void shouldReturnPagedResultOfProducts() {
+        Product product = new Product(1L, "Laptop", "High-end gaming laptop", 5, 1500.00, List.of(), null);
+        ProductResponse productResponse = new ProductResponse(
+                1L,
+                "Laptop",
+                "High-end gaming laptop",
+                1500.00,
+                5,
+                List.of(),
+                null
+        );
+        PagedResult<Product> pagedResult = new PagedResult<>(List.of(product), 0, 10, 1L);
+
+        PagedResult<ProductResponse> expectedPagedResult = new PagedResult<>(
+                List.of(productResponse),
+                0,
+                10,
+                1L
+        );
+
+        when(productServicePort.listProducts(0, 10, "ASC", "name")).thenReturn(pagedResult);
+        when(productRequestMapper.toResponse(product)).thenReturn(productResponse);
+
+        ResponseEntity<PagedResult<ProductResponse>> response = productRestControllerAdapter.getAllProducts(0, 10, "ASC", "name");
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+
+        PagedResult<ProductResponse> actualPagedResult = response.getBody();
+        assertNotNull(actualPagedResult);
+        assertEquals(expectedPagedResult.getPage(), actualPagedResult.getPage());
+        assertEquals(expectedPagedResult.getSize(), actualPagedResult.getSize());
+        assertEquals(expectedPagedResult.getTotalElements(), actualPagedResult.getTotalElements());
+        assertEquals(expectedPagedResult.getTotalPages(), actualPagedResult.getTotalPages());
+        assertEquals(expectedPagedResult.getContent(), actualPagedResult.getContent());
+
+        verify(productServicePort, times(1)).listProducts(0, 10, "ASC", "name");
+        verify(productRequestMapper, times(1)).toResponse(product);
     }
 }

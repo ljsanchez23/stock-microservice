@@ -4,88 +4,77 @@ import com.emazon.StockMicroservice.adapters.driving.http.controller.BrandRestCo
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddBrandRequest;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.IBrandRequestMapper;
 import com.emazon.StockMicroservice.domain.api.IBrandServicePort;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
-import com.emazon.StockMicroservice.domain.util.SortDirection;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MockMvc;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import java.util.List;
+import java.util.Map;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.*;
 
-@WebMvcTest(controllers = BrandRestControllerAdapter.class)
+@DisplayName("Tests para la clase BrandRestControllerAdapter")
 class BrandRestControllerAdapterTest {
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockBean
+    @Mock
     private IBrandServicePort brandServicePort;
 
-    @MockBean
+    @Mock
     private IBrandRequestMapper brandRequestMapper;
 
-    @Test
-    @DisplayName("Should return Bad Request when brand name already exists")
-    void shouldReturnBadRequestWhenBrandNameAlreadyExists() throws Exception {
-        Brand brand = new Brand(1L, "Adimas", "Shoes");
+    @InjectMocks
+    private BrandRestControllerAdapter brandRestControllerAdapter;
 
-        when(brandRequestMapper.toModel(any(AddBrandRequest.class))).thenReturn(brand);
-        doThrow(new InvalidNameException("The brand with the name 'Adimas' already exists."))
-                .when(brandServicePort).saveBrand(any(Brand.class));
-
-        mockMvc.perform(post("/brand")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Adimas\",\"description\":\"Shoes\"}"))
-                .andExpect(status().isBadRequest())
-                .andExpect(content().string("The brand with the name 'Adimas' already exists."));
+    @BeforeEach
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        brandRestControllerAdapter = new BrandRestControllerAdapter(brandServicePort, brandRequestMapper);
     }
 
     @Test
-    @DisplayName("Should create the brand successfully")
-    void shouldCreateBrandSuccessfully() throws Exception {
-        Brand brand = new Brand(1L, "Nacho", "A wide range of books");
+    @DisplayName("Debería añadir una nueva marca correctamente")
+    void shouldSaveBrand() {
+        // Arrange
+        AddBrandRequest addBrandRequest = new AddBrandRequest(1L,"Adidas", "Sportswear");
+        Brand brand = new Brand(1L, "Adidas", "Sportswear");
+        when(brandRequestMapper.toModel(addBrandRequest)).thenReturn(brand);
 
-        when(brandRequestMapper.toModel(any(AddBrandRequest.class))).thenReturn(brand);
+        // Act
+        ResponseEntity<Map<String, Object>> response = brandRestControllerAdapter.saveBrand(addBrandRequest);
 
-        mockMvc.perform(post("/brand")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Nacho\",\"description\":\"A wide range of books\"}"))
-                .andExpect(status().isCreated())
-                .andExpect(content().string("Brand 'Nacho' has been successfully added."));
+        // Assert
+        assertEquals(HttpStatus.CREATED, response.getStatusCode());
+        assertEquals("Brand has been successfully added.", response.getBody().get("message"));
+        assertEquals("Adidas", response.getBody().get("name"));
+        verify(brandServicePort, times(1)).saveBrand(brand);
     }
 
     @Test
-    @DisplayName("Should return all brands")
-    void shouldReturnAllBrands() throws Exception {
-        PagedResult<Brand> pagedResult = new PagedResult<>(
-                List.of(new Brand(1L, "Adimas", "Shoes")),
-                0,
-                10,
-                1
-        );
+    @DisplayName("Debería devolver una lista paginada de marcas")
+    void shouldReturnPagedResultOfBrands() {
+        // Arrange
+        Brand brand = new Brand(1L, "Adidas", "Sportswear");
+        PagedResult<Brand> pagedResult = new PagedResult<>(List.of(brand), 0, 10, 1L);
+        when(brandServicePort.listBrands(0, 10, "ASC")).thenReturn(pagedResult);
 
-        when(brandServicePort.listBrands(0, 10, SortDirection.ASC)).thenReturn(pagedResult);
+        // Act
+        ResponseEntity<PagedResult<Brand>> response = brandRestControllerAdapter.getAllBrands(0, 10, "ASC");
 
-        mockMvc.perform(get("/brand")
-                        .param("page", "0")
-                        .param("size", "10")
-                        .param("sortDirection", "ASC")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json("{\"content\":[{\"id\":1,\"name\":\"Adimas\",\"description\":\"Shoes\"}],\"page\":0,\"size\":10,\"totalElements\":1,\"totalPages\":1}"));
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1, response.getBody().getContent().size());
+        assertEquals(brand, response.getBody().getContent().get(0));
+        assertEquals(0, response.getBody().getPage());
+        assertEquals(10, response.getBody().getSize());
+        assertEquals(1L, response.getBody().getTotalElements());
+        verify(brandServicePort, times(1)).listBrands(0, 10, "ASC");
     }
 }

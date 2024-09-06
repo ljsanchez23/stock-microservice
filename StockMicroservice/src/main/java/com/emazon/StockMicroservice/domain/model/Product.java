@@ -3,10 +3,6 @@ package com.emazon.StockMicroservice.domain.model;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents a product with an ID, name, description, quantity, price,
- * associated categories, and a brand. Used to manage products in the system.
- */
 public class Product {
     private final Long id;
     private final String name;
@@ -16,17 +12,16 @@ public class Product {
     private final List<Category> categories;
     private final Brand brand;
 
-    public Product(Long id, String name, String description, int quantity, double price, List<Category> categories, Brand brand){
+    public Product(Long id, String name, String description, int quantity, double price, List<Category> categories, Brand brand) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.quantity = quantity;
         this.price = price;
-        this.categories = new ArrayList<>(categories);
         this.brand = brand;
+        this.categories = categories;
     }
 
-    // Getters
 
     public Long getId() {
         return id;

@@ -2,11 +2,6 @@ package com.emazon.StockMicroservice.domain.util;
 
 import java.util.List;
 
-/**
- * Represents a paginated result with content, page number,
- * page size, total elements, and total pages.
- * Used to handle paginated responses in the system.
- */
 public class PagedResult<T> {
     private final List<T> content;
     private final int page;

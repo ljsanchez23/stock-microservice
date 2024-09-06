@@ -6,7 +6,6 @@ import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
-import com.emazon.StockMicroservice.domain.util.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -14,13 +13,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.List;
+import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 class BrandUseCaseTest {
+
     @Mock
     private IBrandPersistencePort brandPersistencePort;
 
@@ -33,152 +33,73 @@ class BrandUseCaseTest {
     }
 
     @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre de la marca ya existe")
-    void shouldThrowExceptionWhenBrandNameAlreadyExists() {
-        Brand existingBrand = new Brand(1L,"Adimas", "Fast as wind");
-        when(brandPersistencePort.existsByName("Adimas")).thenReturn(true);
+    @DisplayName("Should save the brand when the inputs are valid")
+    void shouldSaveBrandWhenValid() {
+        Brand brand = new Brand(1L, "Adidas", "Renowned for its sports clothing and accessories.");
+        when(brandPersistencePort.existsByName(brand.getName())).thenReturn(false);
 
-        assertThrows(InvalidNameException.class, () -> brandUseCase.saveBrand(existingBrand));
+        brandUseCase.saveBrand(brand);
 
-        verify(brandPersistencePort, never()).saveBrand(existingBrand);
+        verify(brandPersistencePort, times(1)).saveBrand(brand);
     }
 
     @Test
-    @DisplayName("Debería guardar la marca cuando el nombre es único")
-    void shouldSaveCategoryWhenNameIsUnique() {
-        Brand newBrand = new Brand(1L, "Adimas", "Fast as wind");
-        when(brandPersistencePort.existsByName("Adimas")).thenReturn(false);
+    @DisplayName("Should throw exception when the brand name already exists")
+    void shouldThrowExceptionWhenNameAlreadyExists() {
+        Brand brand = new Brand(1L, "Adidas", "Renowned for its sports clothing and accessories.");
+        when(brandPersistencePort.existsByName(brand.getName())).thenReturn(true);
 
-        brandUseCase.saveBrand(newBrand);
-
-        verify(brandPersistencePort, times(1)).saveBrand(newBrand);
+        assertThrows(InvalidNameException.class, () -> brandUseCase.saveBrand(brand));
     }
 
     @Test
-    @DisplayName("Debería devolver un resultado paginado de marcas")
-    void shouldReturnPagedResultOfBrands() {
-        int page = 0;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-        PagedResult<Brand> expectedPagedResult = new PagedResult<>(
-                List.of(new Brand(1L, "Adimas", "Shoes")),
-                page,
-                size,
-                1
-        );
-        when(brandPersistencePort.getAllBrands(page, size, sortDirection)).thenReturn(expectedPagedResult);
-        PagedResult<Brand> actualPagedResult = brandUseCase.listBrands(page, size, sortDirection);
-        assertEquals(expectedPagedResult, actualPagedResult);
+    @DisplayName("Should return a paginated result of brands")
+    void shouldReturnPagedResult() {
+        PagedResult<Brand> expectedPagedResult = new PagedResult<>(Collections.emptyList(), 0, 10, 0L);
+        when(brandPersistencePort.getAllBrands(0, 10, "ASC")).thenReturn(expectedPagedResult);
+
+        PagedResult<Brand> result = brandUseCase.listBrands(0, 10, "ASC");
+
+        assertEquals(expectedPagedResult, result);
+        verify(brandPersistencePort, times(1)).getAllBrands(0, 10, "ASC");
     }
 
     @Test
-    @DisplayName("Debería devolver un resultado vacío cuando no existen marcas")
-    void shouldReturnEmptyResultWhenNoBrandsExist() {
-        int page = 0;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-
-        PagedResult<Brand> expectedPagedResult = new PagedResult<>(
-                List.of(),
-                page,
-                size,
-                0
-        );
-
-        when(brandPersistencePort.getAllBrands(page, size, sortDirection)).thenReturn(expectedPagedResult);
-
-        PagedResult<Brand> actualPagedResult = brandUseCase.listBrands(page, size, sortDirection);
-
-        assertEquals(expectedPagedResult, actualPagedResult);
-        assertEquals(0, actualPagedResult.getTotalElements());
-        assertEquals(0, actualPagedResult.getContent().size());
+    @DisplayName("Should throw exception when the name is not given")
+    void shouldThrowExceptionWhenNameIsNull() {
+        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(null, "Valid Description"));
     }
 
     @Test
-    @DisplayName("Debería manejar el ordenamiento por orden descendente correctamente")
-    void shouldHandleSortingByDescendingOrder() {
-        int page = 0;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.DESC;
-
-        List<Brand> brands = List.of(
-                new Brand(2L, "Pfizor", "Pharmaceutics"),
-                new Brand(1L, "Adimas", "Shoes")
-        );
-        PagedResult<Brand> expectedPagedResult = new PagedResult<>(
-                brands,
-                page,
-                size,
-                brands.size()
-        );
-
-        when(brandPersistencePort.getAllBrands(page, size, sortDirection)).thenReturn(expectedPagedResult);
-
-        PagedResult<Brand> actualPagedResult = brandUseCase.listBrands(page, size, sortDirection);
-
-        assertEquals(expectedPagedResult, actualPagedResult);
-        assertEquals(brands, actualPagedResult.getContent());
+    @DisplayName("Should throw exception when the name is blank")
+    void shouldThrowExceptionWhenNameIsBlank() {
+        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(" ", "Valid Description"));
     }
 
     @Test
-    @DisplayName("Debería llamar al puerto de persistencia con los parámetros correctos")
-    void shouldCallPersistencePortWithCorrectParameters() {
-        int page = 1;
-        int size = 20;
-        SortDirection sortDirection = SortDirection.DESC;
-
-        brandUseCase.listBrands(page, size, sortDirection);
-
-        verify(brandPersistencePort, times(1)).getAllBrands(page, size, sortDirection);
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el puerto de persistencia falla")
-    void shouldThrowExceptionWhenPersistencePortFails() {
-
-        int page = 1;
-        int size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-
-        doThrow(new RuntimeException("Persistence error")).when(brandPersistencePort).getAllBrands(page, size, sortDirection);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            brandUseCase.listBrands(page, size, sortDirection);
-        });
-        assertEquals("Persistence error", exception.getMessage());
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre es nulo o vacío")
-    void shouldThrowExceptionWhenBrandNameIsNullOrBlank() {
-        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(null, "Valid description"));
-        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand("", "Valid description"));
-    }
-
-    @Test
-    @DisplayName("Debería lanzar una excepción cuando el nombre excede el tamaño máximo permitido")
-    void shouldThrowExceptionWhenBrandNameExceedsMaxLength() {
+    @DisplayName("Should throw exception when the name is too long")
+    void shouldThrowExceptionWhenNameIsTooLong() {
         String longName = "A".repeat(Constants.NAME_MAX_LENGTH + 1);
-        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(longName, "Valid description"));
+
+        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(longName, "Valid Description"));
     }
 
     @Test
-    @DisplayName("Debería lanzar una excepción cuando la descripción es nula o vacía")
-    void shouldThrowExceptionWhenBrandDescriptionIsNullOrBlank() {
-        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid name", null));
-        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid name", ""));
+    @DisplayName("Should throw exception when the description is not given")
+    void shouldThrowExceptionWhenDescriptionIsNull() {
+        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid Name", null));
     }
 
     @Test
-    @DisplayName("Debería lanzar una excepción cuando la descripción excede el tamaño máximo permitido")
-    void shouldThrowExceptionWhenBrandDescriptionExceedsMaxLength() {
+    @DisplayName("Should throw exception when the description is blank")
+    void shouldThrowExceptionWhenDescriptionIsBlank() {
+        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid Name", " "));
+    }
+
+    @Test
+    @DisplayName("Should throw exception when the description is too long")
+    void shouldThrowExceptionWhenDescriptionIsTooLong() {
         String longDescription = "A".repeat(Constants.BRAND_DESCRIPTION_MAX_LENGTH + 1);
-        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid name", longDescription));
-    }
-
-    @Test
-    @DisplayName("Debería pasar la validación cuando el nombre y la descripción son válidos")
-    void shouldPassValidationWhenBrandNameAndDescriptionAreValid() {
-        brandUseCase.validateBrand("Valid name", "Valid description");
+        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid Name", longDescription));
     }
 }

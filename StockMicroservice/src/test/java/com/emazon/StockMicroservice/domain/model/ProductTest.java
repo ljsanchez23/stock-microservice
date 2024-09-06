@@ -5,23 +5,29 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class ProductTest {
+
     @Test
-    @DisplayName("Debería crear un producto cuando se proporciona una entrada válida")
-    void shouldCreateArticleWhenValidInput() {
+    @DisplayName("Should correctly initialize the product attributes")
+    void shouldInitializeProductAttributesCorrectly() {
+        Long id = 1L;
+        String name = "Running Shoes";
+        String description = "High-performance running shoes";
+        int quantity = 10;
+        double price = 99.99;
+        Brand brand = new Brand(1L, "Adidas", "Sportswear");
         List<Category> categories = List.of(
                 new Category(1L, "Clothing", "Apparel including shirts, trousers, dresses, and jackets")
         );
-        Brand brand = new Brand(1L, "Adidas", "Renowned for its wide range of sports clothing, shoes, and accessories");
-        Product product = new Product(1L, "Running Shoes", "High-performance running shoes", 10, 99.99, categories, brand);
-        assertNotNull(product);
-        assertEquals("Running Shoes", product.getName());
-        assertEquals("High-performance running shoes", product.getDescription());
-        assertEquals(10, product.getQuantity());
-        assertEquals(99.99, product.getPrice());
-        assertEquals(1, product.getCategories().size());
+        Product product = new Product(id, name, description, quantity, price, categories, brand);
+        assertEquals(id, product.getId());
+        assertEquals(name, product.getName());
+        assertEquals(description, product.getDescription());
+        assertEquals(quantity, product.getQuantity());
+        assertEquals(price, product.getPrice());
+        assertEquals(categories, product.getCategories());
         assertEquals(brand, product.getBrand());
     }
 }

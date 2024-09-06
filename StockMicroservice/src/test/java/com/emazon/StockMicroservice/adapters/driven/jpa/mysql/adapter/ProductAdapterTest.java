@@ -4,66 +4,96 @@ import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.ProductEnti
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IProductEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IProductRepository;
 import com.emazon.StockMicroservice.domain.model.Product;
-import com.emazon.StockMicroservice.domain.model.Brand;
-import com.emazon.StockMicroservice.domain.model.Category;
+import com.emazon.StockMicroservice.domain.util.PagedResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class ProductAdapterTest {
-    private ProductAdapter articleAdapter;
-    private IProductRepository articleRepository;
-    private IProductEntityMapper articleEntityMapper;
+
+    @Mock
+    private IProductRepository productRepository;
+
+    @Mock
+    private IProductEntityMapper productEntityMapper;
+
+    @InjectMocks
+    private ProductAdapter productAdapter;
 
     @BeforeEach
     void setUp() {
-        articleRepository = mock(IProductRepository.class);
-        articleEntityMapper = mock(IProductEntityMapper.class);
-        articleAdapter = new ProductAdapter(articleRepository, articleEntityMapper);
+        MockitoAnnotations.openMocks(this);
+        productAdapter = new ProductAdapter(productRepository, productEntityMapper);
     }
 
     @Test
-    @DisplayName("Debería guardar el artículo cuando el nombre es único")
-    void shouldSaveProductWhenNameIsUnique() {
-        List<Category> categories = List.of(new Category(1L, "Clothing", "Apparel including shirts, trousers, dresses, and jackets"));
-        Brand brand = new Brand(1L, "Adidas", "Renowned for its wide range of sports clothing, shoes, and accessories");
-
-        Product product = new Product(1L, "Running Shoes", "High-performance running shoes", 10, 99.99, categories, brand);
+    @DisplayName("Should save the product correctly")
+    void shouldSaveProduct() {
+        Product product = new Product(1L, "Laptop", "High-end gaming laptop", 5, 1500.00, List.of(), null);
         ProductEntity productEntity = new ProductEntity();
+        when(productEntityMapper.toEntity(product)).thenReturn(productEntity);
 
-        when(articleRepository.findByName("Running Shoes")).thenReturn(Optional.empty());
+        productAdapter.saveProduct(product);
 
-        when(articleEntityMapper.toEntity(product)).thenReturn(productEntity);
-
-        articleAdapter.saveProduct(product);
-
-        verify(articleRepository, times(1)).save(productEntity);
+        verify(productRepository, times(1)).save(productEntity);
     }
 
     @Test
-    @DisplayName("Debería devolver true cuando el artículo existe")
-    void shouldReturnTrueWhenArticleExists() {
-        String name = "Running Shoes";
-        when(articleRepository.findByName(name)).thenReturn(Optional.of(new ProductEntity()));
+    @DisplayName("Should return true if the product exists by name")
+    void shouldReturnTrueIfProductExistsByName() {
+        String productName = "Laptop";
+        when(productRepository.findByName(productName)).thenReturn(Optional.of(new ProductEntity()));
 
-        boolean result = articleAdapter.existsByName(name);
+        boolean exists = productAdapter.existsByName(productName);
 
-        assertTrue(result, "The article should exist.");
+        assertTrue(exists);
+        verify(productRepository, times(1)).findByName(productName);
     }
+
     @Test
-    @DisplayName("Debería devolver false cuando el artículo no existe")
-    void shouldReturnFalseWhenArticleDoesNotExist() {
-        String name = "Running Shoes";
-        when(articleRepository.findByName(name)).thenReturn(Optional.empty());
+    @DisplayName("Should return a paginated result of products")
+    void shouldReturnPagedResultOfProducts() {
+        ProductEntity productEntity = new ProductEntity();
+        productEntity.setId(1L);
+        productEntity.setName("Laptop");
+        productEntity.setDescription("High-end gaming laptop");
+        productEntity.setQuantity(5);
+        productEntity.setPrice(1500.00);
 
-        boolean result = articleAdapter.existsByName(name);
+        Product product = new Product(1L, "Laptop", "High-end gaming laptop", 5, 1500.00, List.of(), null);
 
-        assertFalse(result, "The article should not exist.");
+        when(productEntityMapper.toDomain(productEntity)).thenReturn(product);
+
+        List<ProductEntity> productEntities = List.of(productEntity, productEntity, productEntity, productEntity, productEntity,
+                productEntity, productEntity, productEntity, productEntity, productEntity);
+        Page<ProductEntity> productPage = new PageImpl<>(productEntities, PageRequest.of(0, 10), 10);
+        when(productRepository.findAll(any(PageRequest.class))).thenReturn(productPage);
+
+        PagedResult<Product> result = productAdapter.getAllProducts(0, 10, "ASC", "name");
+
+        assertEquals(10, result.getContent().size());
+        assertEquals(product.getId(), result.getContent().get(0).getId());
+        assertEquals(product.getName(), result.getContent().get(0).getName());
+        assertEquals(product.getDescription(), result.getContent().get(0).getDescription());
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSize());
+        assertEquals(10, result.getTotalElements());
+
+        verify(productRepository, times(1)).findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name")));
     }
 }

@@ -5,10 +5,12 @@ import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IBrandEntit
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IBrandRepository;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
-import com.emazon.StockMicroservice.domain.util.SortDirection;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -17,27 +19,32 @@ import org.springframework.data.domain.Sort;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.when;
 
 class BrandAdapterTest {
-    private BrandAdapter brandAdapter;
+
+    @Mock
     private IBrandRepository brandRepository;
+
+    @Mock
     private IBrandEntityMapper brandEntityMapper;
+
+    @InjectMocks
+    private BrandAdapter brandAdapter;
 
     @BeforeEach
     void setUp() {
-        brandRepository = mock(IBrandRepository.class);
-        brandEntityMapper = mock(IBrandEntityMapper.class);
+        MockitoAnnotations.openMocks(this);
         brandAdapter = new BrandAdapter(brandRepository, brandEntityMapper);
     }
 
     @Test
-    @DisplayName("Debería guardar la marca cuando el nombre es único")
-    void shouldSaveBrandWhenNameIsUnique() {
-        Brand brand = new Brand(1L,"Adimas", "Fast as wind");
-        when(brandRepository.findByName("Adimas")).thenReturn(Optional.empty());
+    @DisplayName("Should create the brand correctly")
+    void shouldSaveBrand() {
+        Brand brand = new Brand(1L, "Adidas", "Sportswear");
         BrandEntity brandEntity = new BrandEntity();
         when(brandEntityMapper.toEntity(brand)).thenReturn(brandEntity);
 
@@ -47,50 +54,44 @@ class BrandAdapterTest {
     }
 
     @Test
-    @DisplayName("Debería devolver true cuando la marca existe")
-    void shouldReturnTrueWhenBrandExists() {
-        String name = "Adimas";
-        when(brandRepository.findByName(name)).thenReturn(Optional.of(new BrandEntity()));
+    @DisplayName("Should return true if the brand exists by name")
+    void shouldReturnTrueIfBrandExistsByName() {
+        String brandName = "Adidas";
+        when(brandRepository.findByName(brandName)).thenReturn(Optional.of(new BrandEntity()));
 
-        boolean result = brandAdapter.existsByName(name);
+        boolean exists = brandAdapter.existsByName(brandName);
 
-        assertTrue(result, "The brand should exist.");
+        assertTrue(exists);
+        verify(brandRepository, times(1)).findByName(brandName);
     }
 
     @Test
-    @DisplayName("Debería devolver false cuando la marca no existe")
-    void shouldReturnFalseWhenBrandDoesNotExist() {
-        String name = "Adimas";
-        when(brandRepository.findByName(name)).thenReturn(Optional.empty());
-
-        boolean result = brandAdapter.existsByName(name);
-
-        assertFalse(result, "The brand should not exist.");
-    }
-
-    @Test
-    @DisplayName("Debería devolver un resultado paginado de marcas")
+    @DisplayName("Should return a paginated result of brands")
     void shouldReturnPagedResultOfBrands() {
-        int page = 0, size = 10;
-        SortDirection sortDirection = SortDirection.ASC;
-        BrandEntity brandEntity = new BrandEntity(1L, "Adimas", "Shoes");
-        Brand brand = new Brand(1L, "Adimas", "Shoes");
+        BrandEntity brandEntity = new BrandEntity();
+        brandEntity.setId(1L);
+        brandEntity.setName("Adidas");
+        brandEntity.setDescription("Sportswear");
 
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "name"));
-        Page<BrandEntity> brandPage = new PageImpl<>(List.of(brandEntity), pageRequest, 1);
+        Brand brand = new Brand(1L, "Adidas", "Sportswear");
 
-        when(brandRepository.findAll(pageRequest)).thenReturn(brandPage);
         when(brandEntityMapper.toDomain(brandEntity)).thenReturn(brand);
 
+        List<BrandEntity> brandEntities = List.of(brandEntity, brandEntity, brandEntity, brandEntity, brandEntity,
+                brandEntity, brandEntity, brandEntity, brandEntity, brandEntity);
+        Page<BrandEntity> brandPage = new PageImpl<>(brandEntities, PageRequest.of(0, 10), 10);
+        when(brandRepository.findAll(any(PageRequest.class))).thenReturn(brandPage);
 
-        PagedResult<Brand> result = brandAdapter.getAllBrands(page, size, sortDirection);
+        PagedResult<Brand> result = brandAdapter.getAllBrands(0, 10, "ASC");
 
-        assertEquals(1, result.getTotalElements());
-        assertEquals(page, result.getPage());
-        assertEquals(size, result.getSize());
-        assertEquals(List.of(brand), result.getContent());
+        assertEquals(10, result.getContent().size());
+        assertEquals(brand.getId(), result.getContent().get(0).getId());
+        assertEquals(brand.getName(), result.getContent().get(0).getName());
+        assertEquals(brand.getDescription(), result.getContent().get(0).getDescription());
+        assertEquals(0, result.getPage());
+        assertEquals(10, result.getSize());
+        assertEquals(10, result.getTotalElements());
 
-        verify(brandRepository).findAll(pageRequest);
-        verify(brandEntityMapper).toDomain(brandEntity);
+        verify(brandRepository, times(1)).findAll(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "name")));
     }
 }

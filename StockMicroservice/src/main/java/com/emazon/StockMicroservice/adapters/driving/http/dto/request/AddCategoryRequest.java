@@ -5,9 +5,6 @@ import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-/**
- * DTO for adding a new category.
- */
 @AllArgsConstructor
 @Getter
 public class AddCategoryRequest {

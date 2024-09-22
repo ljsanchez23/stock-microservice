@@ -48,7 +48,7 @@ class CategoryRestControllerAdapterTest {
         ResponseEntity<Map<String, Object>> response = categoryRestControllerAdapter.saveCategory(addCategoryRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("Category has been successfully added.", response.getBody().get("message"));
+        assertEquals("Category successfully added", response.getBody().get("message"));
         assertEquals("Electronics", response.getBody().get("name"));
         verify(categoryServicePort, times(1)).saveCategory(category);
     }

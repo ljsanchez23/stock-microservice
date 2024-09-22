@@ -51,7 +51,7 @@ class ProductRestControllerAdapterTest {
         ResponseEntity<Map<String, Object>> response = productRestControllerAdapter.saveProduct(addProductRequest);
 
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals("Product has been successfully added.", response.getBody().get("message"));
+        assertEquals("Product successfully added", response.getBody().get("message"));
         assertEquals("Laptop", response.getBody().get("name"));
         verify(productServicePort, times(1)).saveProduct(product);
     }

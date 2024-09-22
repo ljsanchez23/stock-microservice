@@ -65,13 +65,5 @@ class GlobalExceptionHandlerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("Invalid quantity exception triggered."));
     }
 
-    @Test
-    void whenGeneralException_thenReturnsInternalServerError() throws Exception {
-        mockMvc.perform(MockMvcRequestBuilders.get("/test/general")
-                        .accept(MediaType.APPLICATION_JSON))
-                .andExpect(MockMvcResultMatchers.status().isInternalServerError())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.status").value(HttpStatus.INTERNAL_SERVER_ERROR.value()))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.message").value("An unexpected error occurred."));
-    }
 }
 

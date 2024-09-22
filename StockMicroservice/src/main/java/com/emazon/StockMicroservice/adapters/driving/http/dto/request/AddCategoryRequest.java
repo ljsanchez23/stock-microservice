@@ -1,5 +1,6 @@
 package com.emazon.StockMicroservice.adapters.driving.http.dto.request;
 
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -9,10 +10,10 @@ import lombok.Getter;
 @Getter
 public class AddCategoryRequest {
     private final Long id;
-    @NotBlank(message = "Name cannot be blank")
-    @Size(max = 50, message = "Name must be less than 50 characters")
+    @NotBlank(message = AdapConstants.NAME_CANNOT_BE_BLANK)
+    @Size(max = AdapConstants.MAX_NAME_VALUE, message = AdapConstants.NAME_TOO_LONG)
     private final String name;
-    @NotBlank(message = "Description cannot be blank")
-    @Size(max = 90, message = "Description must be less than 90 characters")
+    @NotBlank(message = AdapConstants.DESCRIPTION_CANNOT_BE_BLANK)
+    @Size(max = AdapConstants.MAX_DESCRIPTION_VALUE, message = AdapConstants.CATEGORY_DESCRIPTION_TOO_LONG)
     private final String description;
 }

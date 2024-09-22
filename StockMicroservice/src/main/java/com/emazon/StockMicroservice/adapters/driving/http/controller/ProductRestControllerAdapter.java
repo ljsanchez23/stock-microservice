@@ -3,6 +3,7 @@ package com.emazon.StockMicroservice.adapters.driving.http.controller;
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddProductRequest;
 import com.emazon.StockMicroservice.adapters.driving.http.dto.response.ProductResponse;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.IProductRequestMapper;
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import com.emazon.StockMicroservice.domain.api.IProductServicePort;
 import com.emazon.StockMicroservice.domain.model.Product;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
@@ -22,38 +23,38 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/product")
+@RequestMapping(AdapConstants.PRODUCT_URL)
 @RequiredArgsConstructor
-@Tag(name = "Product", description = "API for managing products")
+@Tag(name = AdapConstants.PRODUCT, description = AdapConstants.API_FOR_PRODUCTS)
 public class ProductRestControllerAdapter {
     private final IProductServicePort productServicePort;
     private final IProductRequestMapper productRequestMapper;
 
-    @Operation(summary = "Add a new product", description = "Adds a new product to the system")
+    @Operation(summary = AdapConstants.ADD_NEW_PRODUCT, description = AdapConstants.ADDS_NEW_PRODUCT)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Product successfully added",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid product name",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_201, description = AdapConstants.PRODUCT_SUCCESSFULLY_ADDED,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_400, description = AdapConstants.INVALID_PRODUCT_NAME,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = String.class)))
     })
     @PostMapping
     public ResponseEntity<Map<String, Object>> saveProduct(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Product to add", required = true,
+                    description = AdapConstants.PRODUCT_TO_ADD, required = true,
                     content = @Content(schema = @Schema(implementation = AddProductRequest.class)))
             @RequestBody AddProductRequest addProductRequest) {
         Product product = productRequestMapper.toModel(addProductRequest);
         productServicePort.saveProduct(product);
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Product has been successfully added.");
-        response.put("name", product.getName());
+        response.put(AdapConstants.MESSAGE, AdapConstants.PRODUCT_SUCCESSFULLY_ADDED);
+        response.put(AdapConstants.NAME, product.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Get all products", description = "Retrieves a paginated list of all products")
+    @Operation(summary = AdapConstants.GET_ALL_PRODUCTS, description = AdapConstants.LIST_OF_PRODUCTS)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List of products successfully retrieved",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PagedResult.class)))
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_201, description = AdapConstants.PRODUCT_LIST_RETURNED,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = PagedResult.class)))
     })
     @GetMapping
     public ResponseEntity<PagedResult<ProductResponse>> getAllProducts(

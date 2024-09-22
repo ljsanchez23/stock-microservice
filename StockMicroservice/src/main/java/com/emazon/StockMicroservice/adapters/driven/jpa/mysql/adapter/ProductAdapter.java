@@ -3,6 +3,7 @@ package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.adapter;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.ProductEntity;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IProductEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IProductRepository;
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import com.emazon.StockMicroservice.domain.model.Product;
 import com.emazon.StockMicroservice.domain.spi.IProductPersistencePort;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
@@ -30,7 +31,7 @@ public class ProductAdapter implements IProductPersistencePort {
 
     @Override
     public PagedResult<Product> getAllProducts(Integer page, Integer size, String sortDirection, String sortField) {
-        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort.Direction direction = AdapConstants.DESC.equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, sortField));
         Page<ProductEntity> productPage = productRepository.findAll(pageRequest);
         List<Product> products = productPage.getContent()

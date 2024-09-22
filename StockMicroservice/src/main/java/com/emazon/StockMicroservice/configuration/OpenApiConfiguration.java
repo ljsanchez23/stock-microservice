@@ -1,5 +1,7 @@
 package com.emazon.StockMicroservice.configuration;
 
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
+import com.emazon.StockMicroservice.configuration.util.ConfigConstants;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
@@ -12,9 +14,9 @@ public class OpenApiConfiguration {
     public OpenAPI StockMicroserviceAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Stock Microservice")
-                        .version("1.0")
-                        .description("API documentation for the Stock Microservice"));
+                        .title(ConfigConstants.APP_TITLE)
+                        .version(ConfigConstants.VERSION)
+                        .description(ConfigConstants.APP_DESCRIPTION));
     }
 
 }

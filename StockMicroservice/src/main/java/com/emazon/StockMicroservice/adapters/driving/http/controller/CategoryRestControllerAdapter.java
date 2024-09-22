@@ -2,6 +2,7 @@ package com.emazon.StockMicroservice.adapters.driving.http.controller;
 
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddCategoryRequest;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.ICategoryRequestMapper;
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import com.emazon.StockMicroservice.domain.api.ICategoryServicePort;
 import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
@@ -20,38 +21,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/category")
+@RequestMapping(AdapConstants.CATEGORY_URL)
 @RequiredArgsConstructor
-@Tag(name = "Category", description = "API for managing categories")
+@Tag(name = AdapConstants.CATEGORY, description = AdapConstants.API_FOR_CATEGORIES)
 public class CategoryRestControllerAdapter {
     private final ICategoryServicePort categoryServicePort;
     private final ICategoryRequestMapper categoryRequestMapper;
 
-    @Operation(summary = "Add a new category", description = "Adds a new category to the system")
+    @Operation(summary = AdapConstants.ADD_NEW_CATEGORY, description = AdapConstants.ADDS_NEW_CATEGORY)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Category successfully added",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid category name",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_201, description = AdapConstants.CATEGORY_SUCCESSFULLY_ADDED,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_400, description = AdapConstants.INVALID_CATEGORY_NAME,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = String.class)))
     })
     @PostMapping
     public ResponseEntity<Map<String, Object>> saveCategory(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Category to add", required = true,
+                    description = AdapConstants.CATEGORY_TO_ADD, required = true,
                     content = @Content(schema = @Schema(implementation = AddCategoryRequest.class)))
             @RequestBody AddCategoryRequest addCategoryRequest) {
         Category category = categoryRequestMapper.toModel(addCategoryRequest);
         categoryServicePort.saveCategory(category);
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Category has been successfully added.");
-        response.put("name", category.getName());
+        response.put(AdapConstants.MESSAGE, AdapConstants.CATEGORY_SUCCESSFULLY_ADDED);
+        response.put(AdapConstants.NAME, category.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Get all categories", description = "Retrieves a paginated list of all categories")
+    @Operation(summary = AdapConstants.GET_ALL_CATEGORIES, description = AdapConstants.LIST_OF_CATEGORIES)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List of categories successfully retrieved",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PagedResult.class)))
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_200, description = AdapConstants.CATEGORY_LIST_RETURNED,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = PagedResult.class)))
     })
     @GetMapping
     public ResponseEntity<PagedResult<Category>> getAllCategories(

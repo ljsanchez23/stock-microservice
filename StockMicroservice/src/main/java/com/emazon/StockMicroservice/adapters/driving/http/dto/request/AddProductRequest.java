@@ -1,5 +1,6 @@
 package com.emazon.StockMicroservice.adapters.driving.http.dto.request;
 
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.model.Category;
 import jakarta.validation.constraints.*;
@@ -12,19 +13,19 @@ import java.util.List;
 @Getter
 public class AddProductRequest {
     private final Long id;
-    @NotBlank(message = "Name cannot be blank")
-    @Size(max = 50, message = "Name must be less than 50 characters")
+    @NotBlank(message = AdapConstants.NAME_CANNOT_BE_BLANK)
+    @Size(max = AdapConstants.MAX_NAME_VALUE, message = AdapConstants.NAME_TOO_LONG)
     private final String name;
-    @NotBlank(message = "Description cannot be blank")
-    @Size(max = 90, message = "Description must be less than 90 characters")
+    @NotBlank(message = AdapConstants.DESCRIPTION_CANNOT_BE_BLANK)
+    @Size(max = AdapConstants.MAX_DESCRIPTION_VALUE, message = AdapConstants.CATEGORY_DESCRIPTION_TOO_LONG)
     private final String description;
-    @Min(value = 0, message = "Quantity must be at least 0")
+    @Min(value = AdapConstants.NO_NEG_VALUE, message = AdapConstants.QUANTITY_MUST_BE_POSITIVE)
     private final int quantity;
-    @Min(value = 0, message = "Price must be at least 0")
+    @Min(value = AdapConstants.NO_NEG_VALUE, message = AdapConstants.PRICE_MUST_BE_POSITIVE)
     private final double price;
-    @NotEmpty(message = "At least one category must be provided")
-    @Size(max = 3, message = "A product cannot have more than 3 categories")
+    @NotEmpty(message = AdapConstants.AT_LEAST_ONE_CATEGORY)
+    @Size(max = AdapConstants.MAX_CAT_VALUE, message = AdapConstants.MAX_THREE_CATEGORIES)
     private final List<Category> categories;
-    @NotNull(message = "Brand must be provided")
+    @NotNull(message = AdapConstants.BRAND_MUST_BE_PROVIDED)
     private final Brand brand;
 }

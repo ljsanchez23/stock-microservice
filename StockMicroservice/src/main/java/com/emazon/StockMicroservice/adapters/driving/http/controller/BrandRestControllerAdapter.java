@@ -2,6 +2,7 @@ package com.emazon.StockMicroservice.adapters.driving.http.controller;
 
 import com.emazon.StockMicroservice.adapters.driving.http.dto.request.AddBrandRequest;
 import com.emazon.StockMicroservice.adapters.driving.http.mapper.IBrandRequestMapper;
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import com.emazon.StockMicroservice.domain.api.IBrandServicePort;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
@@ -20,38 +21,38 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/brand")
+@RequestMapping(AdapConstants.BRAND_URL)
 @RequiredArgsConstructor
-@Tag(name = "Brand", description = "API for managing brands")
+@Tag(name = AdapConstants.BRAND, description = AdapConstants.API_FOR_BRANDS)
 public class BrandRestControllerAdapter {
     private final IBrandServicePort brandServicePort;
     private final IBrandRequestMapper brandRequestMapper;
 
-    @Operation(summary = "Add a new brand", description = "Adds a new brand to the system")
+    @Operation(summary = AdapConstants.ADD_NEW_BRAND, description = AdapConstants.ADDS_NEW_BRAND)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "201", description = "Brand successfully added",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))),
-            @ApiResponse(responseCode = "400", description = "Invalid brand name",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = String.class)))
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_201, description = AdapConstants.BRAND + AdapConstants.SUCCESSFULLY_ADDED,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = String.class))),
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_400, description = AdapConstants.INVALID_BRAND_NAME,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = String.class)))
     })
     @PostMapping
     public ResponseEntity<Map<String, Object>> saveBrand(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Brand to add", required = true,
+                    description = AdapConstants.BRAND + AdapConstants.TO_ADD, required = true,
                     content = @Content(schema = @Schema(implementation = AddBrandRequest.class)))
             @RequestBody AddBrandRequest addBrandRequest) {
         Brand brand = brandRequestMapper.toModel(addBrandRequest);
         brandServicePort.saveBrand(brand);
         Map<String, Object> response = new HashMap<>();
-        response.put("message", "Brand has been successfully added.");
-        response.put("name", brand.getName());
+        response.put(AdapConstants.MESSAGE, AdapConstants.BRAND + AdapConstants.SUCCESSFULLY_ADDED);
+        response.put(AdapConstants.NAME, brand.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
-    @Operation(summary = "Get all brands", description = "Retrieves a paginated list of all brands")
+    @Operation(summary = AdapConstants.GET_ALL_BRANDS, description = AdapConstants.LIST_OF_BRANDS)
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "List of brands successfully retrieved",
-                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = PagedResult.class)))
+            @ApiResponse(responseCode = AdapConstants.RESPONSE_CODE_200, description = AdapConstants.BRAND_LIST_RETURNED,
+                    content = @Content(mediaType = AdapConstants.APPLICATION_JSON, schema = @Schema(implementation = PagedResult.class)))
     })
     @GetMapping
     public ResponseEntity<PagedResult<Brand>> getAllBrands(

@@ -6,6 +6,7 @@ import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
+import com.emazon.StockMicroservice.domain.util.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,13 +68,13 @@ class BrandUseCaseTest {
     @Test
     @DisplayName("Should throw exception when the name is not given")
     void shouldThrowExceptionWhenNameIsNull() {
-        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(null, "Valid Description"));
+        assertThrows(InvalidNameException.class, () -> Validator.validateBrand(null, "Valid Description"));
     }
 
     @Test
     @DisplayName("Should throw exception when the name is blank")
     void shouldThrowExceptionWhenNameIsBlank() {
-        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(" ", "Valid Description"));
+        assertThrows(InvalidNameException.class, () -> Validator.validateBrand(" ", "Valid Description"));
     }
 
     @Test
@@ -81,25 +82,25 @@ class BrandUseCaseTest {
     void shouldThrowExceptionWhenNameIsTooLong() {
         String longName = "A".repeat(Constants.NAME_MAX_LENGTH + 1);
 
-        assertThrows(InvalidNameException.class, () -> brandUseCase.validateBrand(longName, "Valid Description"));
+        assertThrows(InvalidNameException.class, () -> Validator.validateBrand(longName, "Valid Description"));
     }
 
     @Test
     @DisplayName("Should throw exception when the description is not given")
     void shouldThrowExceptionWhenDescriptionIsNull() {
-        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid Name", null));
+        assertThrows(InvalidDescriptionException.class, () -> Validator.validateBrand("Valid Name", null));
     }
 
     @Test
     @DisplayName("Should throw exception when the description is blank")
     void shouldThrowExceptionWhenDescriptionIsBlank() {
-        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid Name", " "));
+        assertThrows(InvalidDescriptionException.class, () -> Validator.validateBrand("Valid Name", " "));
     }
 
     @Test
     @DisplayName("Should throw exception when the description is too long")
     void shouldThrowExceptionWhenDescriptionIsTooLong() {
         String longDescription = "A".repeat(Constants.BRAND_DESCRIPTION_MAX_LENGTH + 1);
-        assertThrows(InvalidDescriptionException.class, () -> brandUseCase.validateBrand("Valid Name", longDescription));
+        assertThrows(InvalidDescriptionException.class, () -> Validator.validateBrand("Valid Name", longDescription));
     }
 }

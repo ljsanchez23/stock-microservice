@@ -7,6 +7,7 @@ import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
+import com.emazon.StockMicroservice.domain.util.Validator;
 
 public class BrandUseCase implements IBrandServicePort {
     private final IBrandPersistencePort brandPersistencePort;
@@ -17,18 +18,18 @@ public class BrandUseCase implements IBrandServicePort {
 
     @Override
     public void saveBrand(Brand brand){
-        validateBrand(brand.getName(), brand.getDescription());
+        Validator.validateBrand(brand.getName(), brand.getDescription());
         if(brandPersistencePort.existsByName(brand.getName())){
-            throw new InvalidNameException("Brand with name '" + brand.getName() + "' already exist.");
+            throw new InvalidNameException(Constants.BRAND_ALREADY_EXISTS);
         }
         brandPersistencePort.saveBrand(brand);
     }
 
     @Override
     public PagedResult<Brand> listBrands(Integer page, Integer size, String sortDirection) {
-        int defaultPage = 0;
-        int defaultSize = 10;
-        String defaultSortDirection = "ASC";
+        int defaultPage = Constants.DEFAULT_PAGE;
+        int defaultSize = Constants.DEFAULT_SIZE;
+        String defaultSortDirection = Constants.DEFAULT_DIRECTION;
 
         int actualPage = (page != null) ? page : defaultPage;
         int actualSize = (size != null) ? size : defaultSize;
@@ -37,18 +38,4 @@ public class BrandUseCase implements IBrandServicePort {
         return brandPersistencePort.getAllBrands(actualPage, actualSize, actualSortDirection);
     }
 
-    public void validateBrand (String name, String description){
-        if (name == null || name.isBlank()) {
-            throw new InvalidNameException("Name cannot be null or blank.");
-        }
-        if (name.length() > Constants.NAME_MAX_LENGTH) {
-            throw new InvalidNameException("Name must be less than 50 characters.");
-        }
-        if (description == null || description.isBlank()) {
-            throw new InvalidDescriptionException("Description cannot be null or blank.");
-        }
-        if (description.length() > Constants.BRAND_DESCRIPTION_MAX_LENGTH) {
-            throw new InvalidDescriptionException("Description must be less than 120 characters.");
-        }
-    }
 }

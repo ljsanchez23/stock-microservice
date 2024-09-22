@@ -7,6 +7,7 @@ import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
+import com.emazon.StockMicroservice.domain.util.Validator;
 
 public class CategoryUseCase implements ICategoryServicePort {
     private final ICategoryPersistencePort categoryPersistencePort;
@@ -17,18 +18,18 @@ public class CategoryUseCase implements ICategoryServicePort {
 
     @Override
     public void saveCategory(Category category) {
-        validateCategory(category.getName(), category.getDescription());
+        Validator.validateCategory(category.getName(), category.getDescription());
         if (categoryPersistencePort.existsByName(category.getName())) {
-            throw new InvalidNameException("Category with name '" + category.getName() + "' already exist.");
+            throw new InvalidNameException(Constants.CATEGORY_ALREADY_EXISTS);
         }
         categoryPersistencePort.saveCategory(category);
     }
 
     @Override
     public PagedResult<Category> listCategories(Integer page, Integer size, String sortDirection) {
-        int defaultPage = 0;
-        int defaultSize = 10;
-        String defaultSortDirection = "ASC";
+        int defaultPage = Constants.DEFAULT_PAGE;
+        int defaultSize = Constants.DEFAULT_SIZE;
+        String defaultSortDirection = Constants.DEFAULT_DIRECTION;
 
         int actualPage = (page != null) ? page : defaultPage;
         int actualSize = (size != null) ? size : defaultSize;
@@ -37,18 +38,4 @@ public class CategoryUseCase implements ICategoryServicePort {
         return categoryPersistencePort.getAllCategories(actualPage, actualSize, actualSortDirection);
     }
 
-    public void validateCategory(String name, String description) {
-        if (name == null || name.isBlank()) {
-            throw new InvalidNameException("Name cannot be null or blank.");
-        }
-        if (name.length() > Constants.NAME_MAX_LENGTH) {
-            throw new InvalidNameException("Name must be less than " + Constants.NAME_MAX_LENGTH + " characters.");
-        }
-        if (description == null || description.isBlank()) {
-            throw new InvalidDescriptionException("Description cannot be null or blank.");
-        }
-        if (description.length() > Constants.CATEGORY_DESCRIPTION_MAX_LENGTH) {
-            throw new InvalidDescriptionException("Description must be less than " + Constants.CATEGORY_DESCRIPTION_MAX_LENGTH + " characters.");
-        }
-    }
 }

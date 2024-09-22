@@ -1,0 +1,71 @@
+package com.emazon.StockMicroservice.adapters.util;
+
+import com.emazon.StockMicroservice.domain.util.Constants;
+
+public class AdapConstants {
+    public static final String NAME_CANNOT_BE_BLANK = "Name cannot be blank.";
+    public static final String DESCRIPTION_CANNOT_BE_BLANK = "Description cannot be blank.";
+    public static final String NAME_TOO_LONG = "Name must be less than " + Constants.NAME_MAX_LENGTH + Constants.CHARACTERS;
+    public static final String CATEGORY_DESCRIPTION_TOO_LONG = "Description must be less than " + Constants.CATEGORY_DESCRIPTION_MAX_LENGTH + Constants.CHARACTERS;
+    public static final String BRAND_DESCRIPTION_TOO_LONG = "Description must be less than " + Constants.BRAND_DESCRIPTION_MAX_LENGTH + Constants.CHARACTERS;
+    public static final String QUANTITY_MUST_BE_POSITIVE = "Quantity must be at least 1.";
+    public static final String PRICE_MUST_BE_POSITIVE = "Price must be at least 1.";
+    public static final String AT_LEAST_ONE_CATEGORY = Constants.AT_LEAST_ONE_CATEGORY;
+    public static final String MAX_THREE_CATEGORIES = Constants.MAX_THREE_CATEGORIES;
+    public static final String BRAND_MUST_BE_PROVIDED = Constants.BRAND_MUST_BE_PROVIDED;
+    public static final String BRAND_URL = "/brand";
+    public static final String BRAND = "Brand";
+    public static final String API_FOR_BRANDS = "API for managing brands";
+    public static final String RESPONSE_CODE_201 = "201";
+    public static final String RESPONSE_CODE_200 = "200";
+    public static final String APPLICATION_JSON = "application/json";
+    public static final String MESSAGE = "message";
+    public static final String ADD_NEW_BRAND = "Add a new brand";
+    public static final String TO_ADD = " to add";
+    public static final String SUCCESSFULLY_ADDED = " successfully added";
+    public static final String NAME = "name";
+    public static final String INVALID_BRAND_NAME = "Invalid brand name";
+    public static final String LIST_OF_BRANDS = "Retrieves a paginated list of all brands";
+    public static final String GET_ALL_BRANDS = "Get all brands";
+    public static final String ADDS_NEW_BRAND = "Adds a new brand to the system";
+    public static final String RESPONSE_CODE_400 = "400";
+    public static final String BRAND_LIST_RETURNED = "List of brands successfully retrieved";
+    public static final String CATEGORY_URL = "/category";
+    public static final String CATEGORY = "Category";
+    public static final String API_FOR_CATEGORIES = "API for managing categories";
+    public static final String ADD_NEW_CATEGORY = "Add a new category";
+    public static final String ADDS_NEW_CATEGORY = "Adds a new category to the system";
+    public static final String CATEGORY_SUCCESSFULLY_ADDED = "Category successfully added";
+    public static final String CATEGORY_TO_ADD = "Category to add";
+    public static final String GET_ALL_CATEGORIES = "Get all categories";
+    public static final String LIST_OF_CATEGORIES = "Retrieves a paginated list of all categories";
+    public static final String LIST_OF_PRODUCTS = "Retrieves a paginated list of all products";
+    public static final String GET_ALL_PRODUCTS = "Get all products";
+    public static final String INVALID_CATEGORY_NAME = "Invalid category name";
+    public static final String CATEGORY_LIST_RETURNED = "List of categories successfully retrieved";
+    public static final String ADD_NEW_PRODUCT = "Add a new product";
+    public static final String ADDS_NEW_PRODUCT = "Adds a new product to the system";
+    public static final String PRODUCT_SUCCESSFULLY_ADDED = "Product successfully added";
+    public static final String PRODUCT_LIST_RETURNED = "List of products successfully retrieved";
+    public static final String PRODUCT_TO_ADD = "Product to add";
+    public static final String PRODUCT_URL = "/product";
+    public static final String PRODUCT = "Product";
+    public static final String API_FOR_PRODUCTS = "API for managing products";
+    public static final String INVALID_PRODUCT_NAME = "Invalid product name";
+    public static final String ID = "id";
+    public static final String SPRING = "spring";
+    public static final int NO_NEG_VALUE = 0;
+    public static final int MAX_CAT_VALUE = 3;
+    public static final int MAX_NAME_VALUE = 50;
+    public static final int MAX_DESCRIPTION_VALUE = 90;
+    public static final String BRAND_TABLE = "brand";
+    public static final String CATEGORY_TABLE = "category";
+    public static final String PRODUCT_TABLE = "product";
+    public static final String PRODUCT_CATEGORY = "product_category";
+    public static final String PRODUCT_ID = "product_id";
+    public static final String CATEGORY_ID = "category_id";
+    public static final String BRAND_ID = "brand_id";
+    public static final String DESC = "desc";
+
+
+}

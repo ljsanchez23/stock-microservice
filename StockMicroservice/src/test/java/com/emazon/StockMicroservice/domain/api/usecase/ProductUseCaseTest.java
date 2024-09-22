@@ -1,9 +1,6 @@
 package com.emazon.StockMicroservice.domain.api.usecase;
 
-import com.emazon.StockMicroservice.domain.exception.InvalidCategoryException;
-import com.emazon.StockMicroservice.domain.exception.InvalidNameException;
-import com.emazon.StockMicroservice.domain.exception.InvalidPriceException;
-import com.emazon.StockMicroservice.domain.exception.InvalidQuantityException;
+import com.emazon.StockMicroservice.domain.exception.*;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.model.Product;
@@ -124,7 +121,7 @@ class ProductUseCaseTest {
         List<Category> categories = List.of(new Category(1L, "Clothing", "Apparel"));
         Product product = new Product(1L, "Running Shoes", "High-performance running shoes", 10, 99.99, categories, null);
 
-        assertThrows(IllegalArgumentException.class, () -> productUseCase.saveProduct(product));
+        assertThrows(InvalidBrandException.class, () -> productUseCase.saveProduct(product));
     }
 
     @ParameterizedTest

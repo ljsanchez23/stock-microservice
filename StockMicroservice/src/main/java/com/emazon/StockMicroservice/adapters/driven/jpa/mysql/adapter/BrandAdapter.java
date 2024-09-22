@@ -3,6 +3,7 @@ package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.adapter;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity.BrandEntity;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.mapper.IBrandEntityMapper;
 import com.emazon.StockMicroservice.adapters.driven.jpa.mysql.repository.IBrandRepository;
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import com.emazon.StockMicroservice.domain.model.Brand;
 import com.emazon.StockMicroservice.domain.spi.IBrandPersistencePort;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
@@ -30,8 +31,8 @@ public class BrandAdapter implements IBrandPersistencePort {
 
     @Override
     public PagedResult<Brand> getAllBrands(Integer page, Integer size, String sortDirection) {
-        Sort.Direction direction = "desc".equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
-        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, "name"));
+        Sort.Direction direction = AdapConstants.DESC.equalsIgnoreCase(sortDirection) ? Sort.Direction.DESC : Sort.Direction.ASC;
+        PageRequest pageRequest = PageRequest.of(page, size, Sort.by(direction, AdapConstants.NAME));
         Page<BrandEntity> brandPage = brandRepository.findAll(pageRequest);
         List<Brand> brands = brandPage.getContent()
                 .stream()

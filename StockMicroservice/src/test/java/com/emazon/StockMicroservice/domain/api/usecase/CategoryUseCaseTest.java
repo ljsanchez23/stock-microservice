@@ -6,6 +6,7 @@ import com.emazon.StockMicroservice.domain.model.Category;
 import com.emazon.StockMicroservice.domain.spi.ICategoryPersistencePort;
 import com.emazon.StockMicroservice.domain.util.Constants;
 import com.emazon.StockMicroservice.domain.util.PagedResult;
+import com.emazon.StockMicroservice.domain.util.Validator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -67,13 +68,13 @@ class CategoryUseCaseTest {
     @Test
     @DisplayName("Should throw exception when the name is not given")
     void shouldThrowExceptionWhenNameIsNull() {
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(null, "Valid Description"));
+        assertThrows(InvalidNameException.class, () -> Validator.validateCategory(null, "Valid Description"));
     }
 
     @Test
     @DisplayName("Should throw exception when the name is blank")
     void shouldThrowExceptionWhenNameIsBlank() {
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(" ", "Valid Description"));
+        assertThrows(InvalidNameException.class, () -> Validator.validateCategory(" ", "Valid Description"));
     }
 
     @Test
@@ -81,25 +82,25 @@ class CategoryUseCaseTest {
     void shouldThrowExceptionWhenNameIsTooLong() {
         String longName = "A".repeat(Constants.NAME_MAX_LENGTH + 1);
 
-        assertThrows(InvalidNameException.class, () -> categoryUseCase.validateCategory(longName, "Valid Description"));
+        assertThrows(InvalidNameException.class, () -> Validator.validateCategory(longName, "Valid Description"));
     }
 
     @Test
     @DisplayName("Should throw exception when the description is not given")
     void shouldThrowExceptionWhenDescriptionIsNull() {
-        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid Name", null));
+        assertThrows(InvalidDescriptionException.class, () -> Validator.validateCategory("Valid Name", null));
     }
 
     @Test
     @DisplayName("Should throw exception when the description is blank")
     void shouldThrowExceptionWhenDescriptionIsBlank() {
-        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid Name", " "));
+        assertThrows(InvalidDescriptionException.class, () -> Validator.validateCategory("Valid Name", " "));
     }
 
     @Test
     @DisplayName("Should throw exception when the description is too long")
     void shouldThrowExceptionWhenDescriptionIsTooLong() {
         String longDescription = "A".repeat(Constants.CATEGORY_DESCRIPTION_MAX_LENGTH + 1);
-        assertThrows(InvalidDescriptionException.class, () -> categoryUseCase.validateCategory("Valid Name", longDescription));
+        assertThrows(InvalidDescriptionException.class, () -> Validator.validateCategory("Valid Name", longDescription));
     }
 }

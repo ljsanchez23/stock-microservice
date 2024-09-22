@@ -1,5 +1,6 @@
 package com.emazon.StockMicroservice.adapters.driven.jpa.mysql.entity;
 
+import com.emazon.StockMicroservice.adapters.util.AdapConstants;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -7,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "category")
+@Table(name = AdapConstants.CATEGORY_TABLE)
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
